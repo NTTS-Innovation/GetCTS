@@ -22,8 +22,6 @@ read -p "Primary NTP server: " NTP1
 echo "Secondary NTP server, leave empty if you only have one. If you need more please modify /etc/ntp.conf after the installer has been completed"
 echo ""
 read -p  "Secondary NTP server: " NTP2
-ntpdate ${NTP1}
-hwclock --systohc
 cat <<EOF > /etc/ntp.conf
 driftfile /var/lib/ntp/drift
 restrict default nomodify notrap nopeer noquery
@@ -37,6 +35,9 @@ EOF
 if [ ! -z ${NTP2+x} ];then
   echo "server ${NTP2} iburst" >> /etc/ntp.conf
 fi
+systemctl stop ntpd
+ntpdate ${NTP1}
+hwclock --systohc
 systemctl enable ntpd
 systemctl start ntpd
 timedatectl set-timezone UTC
