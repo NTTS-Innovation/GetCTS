@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on any error
+set -e
+
 # Update system and kernel
 echo "Updating operating system and kernel"
 yum clean all && yum -y update && yum -y update kernel
