@@ -10,7 +10,7 @@ yum clean all && yum -y update && yum -y update kernel
 # Create support user for NTT
 echo ""
 echo "Creating NTTSecurity support user"
-adduser NTTSecurity
+adduser NTTSecurity || true
 echo "Please type a temporary password for user NTTSecurity and write it down in a secure place"
 echo "This password needs to be distributed to NTT Service transition team for management"
 echo ""
