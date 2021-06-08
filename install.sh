@@ -124,10 +124,10 @@ read -p "Device name: " DEVICENAME
 sudo docker run --network host \
                 --privileged \
                 --rm \
-                -e 'INITIATOR_ENV=eu1' \
-                -e 'INIT_KEY=${INITKEY}' \
-                -e 'DEVICENAME=${DEVICENAME}' \
-                -e 'INTERFACES=${MONITOR}' \
+                -e "INITIATOR_ENV=eu1" \
+                -e "INIT_KEY=${INITKEY}" \
+                -e "DEVICENAME=${DEVICENAME}" \
+                -e "INTERFACES=${MONITOR}" \
                 -v /:/rootfs \
                 -v /var/run/docker.sock:/var/run/docker.sock:rw \
                 nttsecurityes/initiator:latest
