@@ -43,17 +43,32 @@ systemctl start ntpd
 timedatectl set-timezone UTC
 
 # Creating dummy0 interface
-cat <<EOF > /etc/sysconfig/network-scripts/ifcfg-dummy0
+# Some AWS instances of CentOS 7 hang during boot, we need a work around for them
+TOKEN=$(curl --silent --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600") > /dev/null 2>&1 \
+&& curl --silent --connect-timeout 2 -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1
+if [[ "$?" == "0" ]]; then
+  cat <<EOF > /etc/rc.local
+modprobe dummy numdummies=1
+ip link set name dummy0 dev dummy0
+ip link set dummy0 up
+EOF
+  chmod +x /etc/rc.d/rc.local
+  systemctl enable rc-local
+  modprobe dummy numdummies=1
+  ip link set name dummy0 dev dummy0
+  ip link set dummy0 up
+else
+  cat <<EOF > /etc/sysconfig/network-scripts/ifcfg-dummy0
 DEVICE=dummy0
 NM_CONTROLLED=no
 ONBOOT=yes
 TYPE=Ethernet
 EOF
-echo "dummy" > /etc/modules-load.d/dummy.conf
-echo "options dummy numdummies=1" > /etc/modprobe.d/dummy.conf
-modprobe -v dummy numdummies=1
-ifconfig dummy0 up
-
+  echo "dummy" > /etc/modules-load.d/dummy.conf
+  echo "options dummy numdummies=1" > /etc/modprobe.d/dummy.conf
+  modprobe -v dummy numdummies=1
+  ifconfig dummy0 up
+fi
 # Install Docker
 echo ""
 echo "Removing unvanted packages, error messages may occur"
