@@ -47,6 +47,7 @@ timedatectl set-timezone UTC
 TOKEN=$(curl --silent --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600") > /dev/null 2>&1 \
 && curl --silent --connect-timeout 2 -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1
 if [[ "$?" == "0" ]]; then
+  echo "This is most likely an EC2 instance in AWS. Creating dummy0 using rc.local"
   cat <<EOF > /etc/rc.local
 modprobe dummy numdummies=1
 ip link set name dummy0 dev dummy0
@@ -58,6 +59,7 @@ EOF
   ip link set name dummy0 dev dummy0
   ip link set dummy0 up
 else
+  echo "Creating dummy0 interface"
   cat <<EOF > /etc/sysconfig/network-scripts/ifcfg-dummy0
 DEVICE=dummy0
 NM_CONTROLLED=no
