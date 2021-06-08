@@ -3,9 +3,49 @@
 # Exit on any error
 set -e
 
+MIN_KERNEL_VERSION="3.10.0-1127.8.2.el7.x86_64"
+RUNNING_KERNEL_VERSION=$(uname -r)
+
+vercomp () {
+    if [[ $1 == $2 ]]
+    then
+        return 0
+    fi
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    # fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            return 0
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            return 1
+        fi
+    done
+    return 0
+}
+
 # Update system and kernel
 echo "Updating operating system and kernel"
 yum clean all && yum -y update && yum -y update kernel
+
+if [[ "$(vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION})" != "0" ]]; then
+  echo "Running Kernel version is too old. We just tried to update the entire system."
+  echo "Please reboot and run this command again"
+  exit 1 
+fi
 
 # Create support user for NTT
 echo ""
