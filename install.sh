@@ -37,6 +37,23 @@ vercomp () {
     return 0
 }
 
+# Check if /srv/docker/cts/data is a mount
+set +e
+mount_ok="false"
+for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data
+  do
+    mountpoint -q ${m_point}
+    if [[ "$?" == "0" ]]; then
+      mount_ok="true"
+    fi
+done
+if [[ "$mount_ok" == "false" ]]; then
+  echo "/srv/docker/cts/data is not mounted. Please make sure to mount this path to a high performance NVMe disk"
+  echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
+  exit 1
+fi
+set -e
+
 # Update system and kernel
 echo "Updating operating system and kernel"
 yum clean all && yum -y update && yum -y update kernel
