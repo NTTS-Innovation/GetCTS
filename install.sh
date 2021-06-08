@@ -41,8 +41,9 @@ vercomp () {
 echo "Updating operating system and kernel"
 yum clean all && yum -y update && yum -y update kernel
 
-if [[ "$(vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION})" != "0" ]]; then
-  echo "Running Kernel version is too old. We just tried to update the entire system."
+vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION}
+if [[ "$?" != "0" ]]; then
+  echo "Running Kernel version is too old and the system was just updated to latest version"
   echo "Please reboot and run this command again"
   exit 1 
 fi
