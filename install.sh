@@ -79,13 +79,26 @@ systemctl enable docker
 systemctl start docker
 
 # Show all interfaces, this will be used for last step of enrolling the CTS
-echo ""
-echo "Define one or more monitoring interfaces using a comma separated list"
-echo "Example: eth1,eth2"
-echo "Example: eth2"
-cat /proc/net/dev
-echo ""
-read -p "Monitoring interface(s): " INTERFACES
+ifaces=$(ls -m /sys/class/net)
+while :
+  do
+    echo "Available interfaces: ${ifaces}"
+    read -p "Define monitoring interface: " MONITOR
+    if_ok="true"
+    OLD_IFS=$IFS
+    IFS=","
+    for m_interface in $MONITOR
+      do
+        if [[ " ${ifaces} " != *"${m_interface}"* ]]; then
+          echo "${m_interface} does not exists"
+          if_ok="false"
+        fi
+    done
+    IFS=$OLD_IFS
+    if [[ "$if_ok" == "true" ]] && [[ ${MONITOR} != "" ]] ; then
+      break
+    fi
+done
 
 read -p "Init key: " INITKEY
 read -p "Device name: " DEVICENAME
@@ -97,7 +110,7 @@ sudo docker run --network host \
                 -e 'INITIATOR_ENV=eu1' \
                 -e 'INIT_KEY=${INITKEY}' \
                 -e 'DEVICENAME=${DEVICENAME}' \
-                -e 'INTERFACES=${INTERFACES}' \
+                -e 'INTERFACES=${MONITOR}' \
                 -v /:/rootfs \
                 -v /var/run/docker.sock:/var/run/docker.sock:rw \
                 nttsecurityes/initiator:latest
