@@ -7,34 +7,76 @@ MIN_KERNEL_VERSION="3.10.0-1127.8.2.el7.x86_64"
 RUNNING_KERNEL_VERSION=$(uname -r)
 
 vercomp () {
-    if [[ $1 == $2 ]]
-    then
-        return 0
-    fi
-    local IFS=.
-    local i ver1=($1) ver2=($2)
-    # fill empty fields in ver1 with zeros
-    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+  if [[ $1 == $2 ]]
+  then
+      return 0
+  fi
+  local IFS=.
+  local i ver1=($1) ver2=($2)
+  # fill empty fields in ver1 with zeros
+  for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+  do
+      ver1[i]=0
+  done
+  for ((i=0; i<${#ver1[@]}; i++))
+  do
+      if [[ -z ${ver2[i]} ]]
+      then
+          # fill empty fields in ver2 with zeros
+          ver2[i]=0
+      fi
+      if ((10#${ver1[i]} > 10#${ver2[i]}))
+      then
+          return 0
+      fi
+      if ((10#${ver1[i]} < 10#${ver2[i]}))
+      then
+          return 1
+      fi
+  done
+  return 0
+}
+
+format_disk() {
+  disks=$(lsblk -dpno name)
+  for d in $disks
     do
-        ver1[i]=0
-    done
-    for ((i=0; i<${#ver1[@]}; i++))
+      if [[ $(/sbin/sfdisk -d ${d} 2>&1) == "" ]]; then
+        echo "Device $d not partitioned"
+      else
+        echo "Device $d is partitoned"
+      fi
+  done
+  echo ""
+  lsblk
+  echo ""
+  read -p "Type device path to partition: " disk
+  while :
     do
-        if [[ -z ${ver2[i]} ]]
-        then
-            # fill empty fields in ver2 with zeros
-            ver2[i]=0
-        fi
-        if ((10#${ver1[i]} > 10#${ver2[i]}))
-        then
-            return 0
-        fi
-        if ((10#${ver1[i]} < 10#${ver2[i]}))
-        then
-            return 1
-        fi
-    done
-    return 0
+      echo ""
+      echo "This is the disk you are about to destroy"
+      fdisk -l $disk
+      echo ""
+      echo ""
+      echo "Are you SURE you want to destroy all data on $disk?"
+      read -p "Type YES to destroy $disk: " INPUT
+      if [[ "${INPUT}" == "YES" ]]; then
+        break
+      fi
+      echo "If you want to abort and restart install please press CTRL+C"
+  done
+  parted $disk --script mklabel msdos
+  parted $disk --script mkpart primary ext4 0% 100%
+  PARTITION=$(sfdisk -d ${disk} |grep Id=83|awk '{print $1}')
+  mkfs.ext4 $PARTITION
+  mkdir -p /srv/docker/cts/data
+  if ! grep "/srv/docker/cts/data" /etc/fstab; then
+    echo "Adding mount to /etc/fstab"
+    echo "$PARTITION /srv/docker/cts/data ext4 defaults 0 2" >> /etc/fstab
+  else
+    echo "Mount already exist in /etc/fstab"
+  fi
+  mount -a
 }
 
 # Check if /srv/docker/cts/data is a mount
@@ -50,7 +92,16 @@ done
 if [[ "$mount_ok" == "false" ]]; then
   echo "/srv/docker/cts/data is not mounted. Please make sure to mount this path to a high performance NVMe disk"
   echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
-  exit 1
+  read -p "Do you want this installer to try to find a partition to format for you? Type YES or NO: " INPUT
+  while :
+    do
+      if [[ "${INPUT}" == "YES" ]]; then
+        format_disk
+      fi
+      if [[ "${INPUT}" == "NO" ]]; then
+        exit 1
+      fi
+  done
 fi
 set -e
 
