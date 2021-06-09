@@ -144,7 +144,7 @@ keys /etc/ntp/keys
 disable monitor
 server ${NTP1} iburst
 EOF
-if [ ! -z ${NTP2+x} ];then
+if [ ! -z ${NTP2} ];then
   echo "server ${NTP2} iburst" >> /etc/ntp.conf
 fi
 systemctl stop ntpd
