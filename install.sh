@@ -54,12 +54,12 @@ format_disk() {
   while :
     do
       echo ""
-      echo "This is the disk you are about to destroy"
+      echo "This is the disk you are about to partition and all data will be deleted"
       fdisk -l $disk
       echo ""
       echo ""
-      echo "Are you SURE you want to destroy all data on $disk?"
-      read -p "Type YES to destroy $disk: " INPUT
+      echo "Are you SURE you want to delete all data on $disk?"
+      read -p "Type YES to delete all data and partition $disk: " INPUT
       if [[ "${INPUT}" == "YES" ]]; then
         break
       fi
