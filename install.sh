@@ -42,7 +42,7 @@ format_disk() {
   for d in $disks
     do
       if [[ $(/sbin/sfdisk -d ${d} 2>&1) == "" ]]; then
-        echo "Device $d not partitioned"
+        echo "Device $d is not partitioned"
       else
         echo "Device $d is partitoned"
       fi
@@ -50,7 +50,7 @@ format_disk() {
   echo ""
   lsblk
   echo ""
-  read -p "Type device path to partition: " disk
+  read -p "Type disk path for partition: " disk
   while :
     do
       echo ""
