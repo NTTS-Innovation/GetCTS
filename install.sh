@@ -110,8 +110,7 @@ set -e
 echo "Updating operating system and kernel"
 yum clean all && yum -y update && yum -y update kernel
 
-vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION}
-if [[ "$?" != "0" ]]; then
+if ! vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION}; then
   echo "Running Kernel version is too old and the system was just updated to latest version"
   echo "Please reboot and run this command again"
   exit 1 
