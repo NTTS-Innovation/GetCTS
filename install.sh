@@ -229,6 +229,9 @@ while :
     fi
 done
 
+echo ""
+echo "Please enter device details. Both init key and device name needs to be defined."
+echo "  You should be able to find this information in your enrollment documentation."
 read -p "Init key: " INITKEY
 read -p "Device name: " DEVICENAME
 
