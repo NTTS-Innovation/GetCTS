@@ -92,11 +92,12 @@ done
 if [[ "$mount_ok" == "false" ]]; then
   echo "/srv/docker/cts/data is not mounted. Please make sure to mount this path to a high performance NVMe disk"
   echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
-  read -p "Do you want this installer to try to find a partition to format for you? Type YES or NO: " INPUT
   while :
     do
+      read -p "Do you want this installer to try to find a partition to format for you? Type YES or NO: " INPUT
       if [[ "${INPUT}" == "YES" ]]; then
         format_disk
+        break
       fi
       if [[ "${INPUT}" == "NO" ]]; then
         exit 1
