@@ -229,6 +229,17 @@ while :
     fi
 done
 
+# Test connectivity
+echo ""
+echo "Verifying Internet access to required resources"
+docker run --entrypoint check_internet_access -it nttsecurityes/initiator:latest
+if [[ "$?" == "1" ]]; then
+  echo "Issues with internet access to required resources was found!"
+  echo "  Please re run the test until all tests PASS"
+  echo "docker run --entrypoint check_internet_access -it nttsecurityes/initiator:latest"
+  exit 1
+fi
+
 echo ""
 echo "Please enter device details. Both init key and device name needs to be defined."
 echo "  You should be able to find this information in your enrollment documentation."
