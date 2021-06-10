@@ -38,18 +38,34 @@ vercomp () {
 
 format_disk() {
   disks=$(lsblk -dpno name)
+  unformated_disks=""
   for d in $disks
     do
       if [[ $(/sbin/sfdisk -d ${d} 2>&1) == "" ]]; then
         echo "Device $d is not partitioned"
-      else
-        echo "Device $d is partitoned"
+        unformated_disks="$d $unformated_disks"
       fi
   done
   echo ""
-  lsblk
-  echo ""
-  read -p "Type disk path for partition: " disk
+  if [[ ${unformated_disks} == "" ]]; then
+    echo "No unformated disks for data storage was found. Please add a unpartitioned disk and"
+    echo "  start this installer again. Aborting..."
+    exit 1
+  fi
+  while :
+    do
+      read -p "Type disk path for partition: " disk
+      if [[ "${disks}" != *"${disk}"* ]]; then
+        echo "${disk} was not found!, please type from list above"
+      else
+        if [[ "${unformated_disks}" != *"${disk}"* ]]; then
+          echo "${disk} is not empty. Remove all partitions and start this installer again."
+          exit 1
+        else
+          break
+        fi
+      fi
+  done
   while :
     do
       echo ""
