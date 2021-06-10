@@ -146,10 +146,11 @@ usermod -aG wheel NTTSecurity
 # Install and configure NTP
 yum install -y ntp
 echo ""
+echo "Configure server time"
+echo "Leave secondary NTP server empty if you only have one (just press enter)."
+echo "  If you need more please modify /etc/ntp.conf after the installer has been completed"
 read -p "Primary NTP server: " NTP1
 read -p "Secondary NTP server: " NTP2
-echo "leave secondary NTP server empty if you only have one."
-echo "  If you need more please modify /etc/ntp.conf after the installer has been completed"
 echo ""
 cat <<EOF > /etc/ntp.conf
 driftfile /var/lib/ntp/drift
