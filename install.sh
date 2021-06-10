@@ -228,8 +228,10 @@ systemctl start docker
 ifaces=$(ls -m /sys/class/net)
 while :
   do
+    echo ""
     echo "Available interfaces: ${ifaces}"
-    read -p "Define monitoring interface: " MONITOR
+    echo "  Use one or more, separated by ','"
+    read -p "Monitoring interface(s): " MONITOR
     if_ok="true"
     OLD_IFS=$IFS
     IFS=","
