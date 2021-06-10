@@ -237,6 +237,13 @@ fi
 if [ ! -z https_proxy ]; then
   https_proxy_string="-e https_proxy=${https_proxy}"
 fi
+if [ ! -z HTTP_PROXY ]; then
+  http_proxy_string="-e HTTP_PROXY=${HTTP_PROXY}"
+fi
+if [ ! -z HTTPS_PROXY ]; then
+  https_proxy_string="-e HTTPS_PROXY=${HTTPS_PROXY}"
+fi
+
 
 docker run ${http_proxy_string} ${https_proxy_string} --entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access
 if [[ "$?" == "1" ]]; then
