@@ -238,10 +238,10 @@ if [ ! -z https_proxy ]; then
   https_proxy_string="-e https_proxy=${https_proxy}"
 fi
 if [ ! -z HTTP_PROXY ]; then
-  http_proxy_string="-e HTTP_PROXY=${HTTP_PROXY}"
+  HTTP_PROXY_STRING="-e HTTP_PROXY=${HTTP_PROXY}"
 fi
 if [ ! -z HTTPS_PROXY ]; then
-  https_proxy_string="-e HTTPS_PROXY=${HTTPS_PROXY}"
+  HTTPS_PROXY_STRING="-e HTTPS_PROXY=${HTTPS_PROXY}"
 fi
 
 
@@ -267,7 +267,7 @@ sudo docker run --network host \
                 -e "INIT_KEY=${INITKEY}" \
                 -e "DEVICENAME=${DEVICENAME}" \
                 -e "INTERFACES=${MONITOR}" \
-                ${http_proxy_string} ${https_proxy_string} \
+                ${http_proxy_string} ${https_proxy_string} ${HTTP_PROXY_STRING} ${HTTPS_PROXY_STRING} \
                 -v /:/rootfs \
                 -v /var/run/docker.sock:/var/run/docker.sock:rw \
                 nttsecurityes/initiator:latest
