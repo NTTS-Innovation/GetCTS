@@ -39,10 +39,12 @@ vercomp () {
 format_disk() {
   disks=$(lsblk -dpno name)
   unformated_disks=""
+  echo ""
+  echo "Available disks to partition and format for data storage:"
   for d in $disks
     do
       if [[ $(/sbin/sfdisk -d ${d} 2>&1) == "" ]]; then
-        echo "Device $d is not partitioned"
+        echo "  $d"
         unformated_disks="$d $unformated_disks"
       fi
   done
@@ -59,8 +61,7 @@ format_disk() {
         echo "${disk} was not found!, please type from list above"
       else
         if [[ "${unformated_disks}" != *"${disk}"* ]]; then
-          echo "${disk} is not empty. Remove all partitions and start this installer again."
-          exit 1
+          echo "${disk} is not empty. Please select a disk from the list above"
         else
           break
         fi
