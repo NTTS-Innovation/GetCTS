@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Exit on any error
 set -e
 
@@ -113,7 +112,7 @@ yum clean all && yum -y update && yum -y update kernel
 if ! vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION}; then
   echo "Running Kernel version is too old and the system was just updated to latest version"
   echo "Please reboot and run this command again"
-  exit 1 
+  exit 1
 fi
 
 # Create support user for NTT
@@ -158,7 +157,7 @@ timedatectl set-timezone UTC
 # Some AWS instances of CentOS 7 hang during boot, we need a work around for them
 TOKEN=$(curl --silent --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600") > /dev/null 2>&1 \
 && curl --silent --connect-timeout 2 -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1
-if [[ "$?" == "0" ]]; then
+if [[ "$?" == "0" ]] && [[ ! ${TOKEN} == *"ERR_CONNECT_FAIL"* ]]; then
   echo "This is most likely an EC2 instance in AWS. Creating dummy0 using rc.local"
   cat <<EOF > /etc/rc.local
 modprobe dummy numdummies=1
@@ -232,7 +231,14 @@ done
 # Test connectivity
 echo ""
 echo "Verifying Internet access to required resources"
-docker run --entrypoint check_internet_access -it nttsecurityes/initiator:latest
+if [ ! -z http_proxy ]; then
+  http_proxy_string="-e http_proxy=${http_proxy}"
+fi
+if [ ! -z https_proxy ]; then
+  https_proxy_string="-e https_proxy=${https_proxy}"
+fi
+
+docker run ${http_proxy_string} ${https_proxy_string} --entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access
 if [[ "$?" == "1" ]]; then
   echo "Issues with internet access to required resources was found!"
   echo "  Please re run the test until all tests PASS"
@@ -254,6 +260,7 @@ sudo docker run --network host \
                 -e "INIT_KEY=${INITKEY}" \
                 -e "DEVICENAME=${DEVICENAME}" \
                 -e "INTERFACES=${MONITOR}" \
+                ${http_proxy_string} ${https_proxy_string} \
                 -v /:/rootfs \
                 -v /var/run/docker.sock:/var/run/docker.sock:rw \
                 nttsecurityes/initiator:latest
