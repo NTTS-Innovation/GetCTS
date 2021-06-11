@@ -50,7 +50,7 @@ format_disk() {
   done
   echo ""
   if [[ ${unformated_disks} == "" ]]; then
-    echo "No unformated disks for data storage was found. Please add a unpartitioned disk and"
+    echo "No unformated disks for data storage were found. Please add an unpartitioned disk and"
     echo "  start this installer again. Aborting..."
     exit 1
   fi
@@ -90,7 +90,7 @@ format_disk() {
     echo "Adding mount to /etc/fstab"
     echo "$PARTITION /srv/docker/cts/data ext4 defaults 0 2" >> /etc/fstab
   else
-    echo "Mount already exist in /etc/fstab"
+    echo "Mount already exists in /etc/fstab"
   fi
   mount -a
 }
@@ -148,7 +148,7 @@ yum install -y ntp
 echo ""
 echo "Configure server time"
 echo "Leave secondary NTP server empty if you only have one (just press enter)."
-echo "  If you need more please modify /etc/ntp.conf after the installer has been completed"
+echo "  If you need more please modify /etc/ntp.conf after the installation has been completed"
 read -p "Primary NTP server: " NTP1
 read -p "Secondary NTP server: " NTP2
 echo ""
@@ -203,7 +203,7 @@ EOF
 fi
 # Install Docker
 echo ""
-echo "Removing unvanted packages, error messages may occur"
+echo "Removing unwanted packages, error messages may occur"
 sudo yum remove docker \
                   docker-client \
                   docker-client-latest \
@@ -268,14 +268,14 @@ fi
 
 docker run ${http_proxy_string} ${https_proxy_string} --entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access
 if [[ "$?" == "1" ]]; then
-  echo "Issues with internet access to required resources was found!"
+  echo "Issues with internet access to required resources were found!"
   echo "  Please re run the test until all tests PASS"
   echo "docker run --entrypoint check_internet_access -it nttsecurityes/initiator:latest"
   exit 1
 fi
 
 echo ""
-echo "Please enter device details. Both init key and device name needs to be defined."
+echo "Please enter device details. Both init key and device name need to be defined."
 echo "  You should be able to find this information in your enrollment documentation."
 read -p "Init key: " INITKEY
 read -p "Device name: " DEVICENAME
