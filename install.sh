@@ -253,24 +253,23 @@ done
 echo ""
 echo "Verifying Internet access to required resources"
 if [ ! -z http_proxy ]; then
-  http_proxy_string="-e http_proxy=${http_proxy}"
+  http_proxy_string="-e http_proxy=${http_proxy} "
 fi
 if [ ! -z https_proxy ]; then
-  https_proxy_string="-e https_proxy=${https_proxy}"
+  https_proxy_string="-e https_proxy=${https_proxy} "
 fi
 if [ ! -z HTTP_PROXY ]; then
-  HTTP_PROXY_STRING="-e HTTP_PROXY=${HTTP_PROXY}"
+  HTTP_PROXY_STRING="-e HTTP_PROXY=${HTTP_PROXY} "
 fi
 if [ ! -z HTTPS_PROXY ]; then
-  HTTPS_PROXY_STRING="-e HTTPS_PROXY=${HTTPS_PROXY}"
+  HTTPS_PROXY_STRING="-e HTTPS_PROXY=${HTTPS_PROXY} "
 fi
 
-
-docker run ${http_proxy_string} ${https_proxy_string} --entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access
+docker run ${http_proxy_string}${https_proxy_string}--entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access
 if [[ "$?" == "1" ]]; then
   echo "Issues with internet access to required resources were found!"
   echo "  Please re run the test until all tests PASS"
-  echo "docker run ${http_proxy_string} ${https_proxy_string} --entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access"
+  echo "docker run ${http_proxy_string}${https_proxy_string}--entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access"
   exit 1
 fi
 
@@ -288,7 +287,7 @@ sudo docker run --network host \
                 -e "INIT_KEY=${INITKEY}" \
                 -e "DEVICENAME=${DEVICENAME}" \
                 -e "INTERFACES=${MONITOR}" \
-                ${http_proxy_string} ${https_proxy_string} ${HTTP_PROXY_STRING} ${HTTPS_PROXY_STRING} \
+                ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
                 -v /:/rootfs \
                 -v /var/run/docker.sock:/var/run/docker.sock:rw \
                 nttsecurityes/initiator:latest
