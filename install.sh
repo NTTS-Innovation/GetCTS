@@ -270,7 +270,7 @@ docker run ${http_proxy_string} ${https_proxy_string} --entrypoint /bin/bash -it
 if [[ "$?" == "1" ]]; then
   echo "Issues with internet access to required resources were found!"
   echo "  Please re run the test until all tests PASS"
-  echo "docker run --entrypoint check_internet_access -it nttsecurityes/initiator:latest"
+  echo "docker run ${http_proxy_string} ${https_proxy_string} --entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access"
   exit 1
 fi
 
