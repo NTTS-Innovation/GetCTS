@@ -252,16 +252,16 @@ done
 # Test connectivity
 echo ""
 echo "Verifying Internet access to required resources"
-if [ ! -z http_proxy ]; then
+if [ ! -z ${http_proxy} ]; then
   http_proxy_string="-e http_proxy=${http_proxy} "
 fi
-if [ ! -z https_proxy ]; then
+if [ ! -z ${https_proxy} ]; then
   https_proxy_string="-e https_proxy=${https_proxy} "
 fi
-if [ ! -z HTTP_PROXY ]; then
+if [ ! -z ${HTTP_PROXY} ]; then
   HTTP_PROXY_STRING="-e HTTP_PROXY=${HTTP_PROXY} "
 fi
-if [ ! -z HTTPS_PROXY ]; then
+if [ ! -z ${HTTPS_PROXY} ]; then
   HTTPS_PROXY_STRING="-e HTTPS_PROXY=${HTTPS_PROXY} "
 fi
 
