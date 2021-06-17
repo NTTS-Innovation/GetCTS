@@ -143,8 +143,10 @@ read -s -p "Password: " CREDENTIALS
 echo ${CREDENTIALS} | passwd NTTSecurity --stdin
 usermod -aG wheel NTTSecurity
 
-# Install and configure NTP
-yum install -y ntp
+# Install required packages
+yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2
+
+# Configure NTP
 echo ""
 echo "Configure server time"
 echo "Leave secondary NTP server empty if you only have one (just press enter)."
@@ -212,10 +214,6 @@ sudo yum remove docker \
                   docker-latest-logrotate \
                   docker-logrotate \
                   docker-engine
-
-yum install -y yum-utils \
-  device-mapper-persistent-data \
-  lvm2
 
 yum-config-manager \
     --add-repo \
