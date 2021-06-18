@@ -164,7 +164,6 @@ if [[ "${DIST}" == "centos" ]]; then
   echo ${CREDENTIALS} | passwd nttsecurity --stdin
   usermod -aG wheel nttsecurity
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  echo "nttsecurity:${CREDENTIALS}" | chpasswd
   usermod -aG sudo nttsecurity
 fi
 
@@ -243,6 +242,7 @@ EOF
     ip link set up dummy0
   fi
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+  echo "Creating dummy0 interface"
   cat <<EOF > /etc/netplan/10-cts-dummy0.yaml
 network:
   bridges:
