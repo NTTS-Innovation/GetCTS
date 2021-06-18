@@ -204,7 +204,7 @@ EOF
   timedatectl set-timezone UTC
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
   mkdir -p /etc/systemd/timesyncd.conf.d/
-  cat <<EOF /etc/systemd/timesyncd.conf.d/cts.conf
+  cat <<EOF > /etc/systemd/timesyncd.conf.d/cts.conf
 [Time]
 NTP=${NTP1}
 EOF
