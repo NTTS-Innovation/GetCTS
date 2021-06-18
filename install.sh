@@ -155,12 +155,12 @@ fi
 # Create support user for NTT
 echo ""
 echo "Creating nttsecurity support user"
-adduser nttsecurity || true
 echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
 echo "This password needs to be distributed to NTT Service transition team for management"
 echo ""
-read -s -p "Password: " CREDENTIALS
+adduser nttsecurity || true
 if [[ "${DIST}" == "centos" ]]; then
+  read -s -p "Password: " CREDENTIALS
   echo ${CREDENTIALS} | passwd nttsecurity --stdin
   usermod -aG wheel nttsecurity
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
