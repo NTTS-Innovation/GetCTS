@@ -171,7 +171,7 @@ fi
 if [[ "${DIST}" == "centos" ]]; then
   yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  apt -y install apt-transport-https ca-certificates curl gnupg lsb-release ntp netplan.io ntpdate
+  apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate
 fi
 
 # Configure NTP
@@ -182,7 +182,8 @@ echo "  If you need more please modify /etc/ntp.conf after the installation has 
 read -p "Primary NTP server: " NTP1
 read -p "Secondary NTP server: " NTP2
 echo ""
-cat <<EOF > /etc/ntp.conf
+if [[ "${DIST}" == "centos" ]]; then
+  cat <<EOF > /etc/ntp.conf
 driftfile /var/lib/ntp/drift
 restrict default nomodify notrap nopeer noquery
 restrict 127.0.0.1
@@ -192,10 +193,9 @@ keys /etc/ntp/keys
 disable monitor
 server ${NTP1} iburst
 EOF
-if [ ! -z ${NTP2} ];then
-  echo "server ${NTP2} iburst" >> /etc/ntp.conf
-fi
-if [[ "${DIST}" == "centos" ]]; then
+  if [ ! -z ${NTP2} ];then
+    echo "server ${NTP2} iburst" >> /etc/ntp.conf
+  fi
   systemctl stop ntpd
   ntpdate ${NTP1}
   hwclock --systohc
@@ -203,11 +203,19 @@ if [[ "${DIST}" == "centos" ]]; then
   systemctl start ntpd
   timedatectl set-timezone UTC
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  systemctl stop ntp
+  mkdir -p /etc/systemd/timesyncd.conf.d/
+  cat <<EOF /etc/systemd/timesyncd.conf.d/cts.conf
+[Time]
+NTP=${NTP1}
+EOF
+  if [ ! -z ${NTP2} ];then
+    echo "FallbackNTP=${NTP2}" >> /etc/systemd/timesyncd.conf.d/cts.conf
+  fi
+  systemctl stop systemd-timesyncd
   ntpdate ${NTP1}
   hwclock --systohc
-  systemctl enable ntp
-  systemctl start ntp
+  systemctl enable systemd-timesyncd
+  systemctl start systemd-timesyncd
   timedatectl set-timezone UTC
 fi
 
