@@ -56,7 +56,7 @@ format_disk() {
   fi
   while :
     do
-      read -p "Type disk path for partition: " disk
+      disk=$(reader "Type disk path for partition: " "DATA_DISK_PATH")
       if [[ "${disks}" != *"${disk}"* ]]; then
         echo "${disk} was not found!, please type from list above"
       else
@@ -75,7 +75,7 @@ format_disk() {
       echo ""
       echo ""
       echo "Are you SURE you want to delete all data on $disk?"
-      read -p "Type YES to delete all data and partition $disk: " INPUT
+      INPUT=$(reader "Type YES to delete all data and partition $disk: " "DELETE_DATA_DISK")
       if [[ "${INPUT}" == "YES" ]]; then
         break
       fi
@@ -95,6 +95,32 @@ format_disk() {
   mount -a
 }
 
+function secret_reader()
+{
+  if [ -z ${!2} ]; then
+    read -s -p "${1}" ${2}
+    echo "${!2}"
+  else
+    echo "${!2}"
+  fi
+}
+
+function reader()
+{
+  if [ -z ${!2} ]; then
+    read -p "${1}" ${2}
+    echo "${!2}"
+  else
+    echo "${!2}"
+  fi
+}
+
+# Load defaults if they exist
+set +e
+if [ -f ".defaults" ]; then
+  . .defaults
+fi
+
 # Load os-release so we know on what dist we are
 if [ -f "/etc/os-release" ]; then
   . /etc/os-release
@@ -113,7 +139,6 @@ else
 fi
 
 # Check if /srv/docker/cts/data is a mount
-set +e
 mount_ok="false"
 for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data
   do
@@ -127,7 +152,7 @@ if [[ "$mount_ok" == "false" ]]; then
   echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
   while :
     do
-      read -p "Do you want this installer to try to find a partition to format for you? Type YES or NO: " INPUT
+      INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "TRY_FORMAT_DISK")
       if [[ "${INPUT}" == "YES" ]]; then
         format_disk
         break
@@ -158,12 +183,15 @@ echo "Creating nttsecurity support user"
 echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
 echo "This password needs to be distributed to NTT Service transition team for management"
 echo ""
-adduser nttsecurity || true
 if [[ "${DIST}" == "centos" ]]; then
-  read -s -p "Password: " CREDENTIALS
+  adduser nttsecurity || true
+  CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
   echo ${CREDENTIALS} | passwd nttsecurity --stdin
   usermod -aG wheel nttsecurity
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+  adduser --disabled-password --gecos "" nttsecurity || true
+  CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+  echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
   usermod -aG sudo nttsecurity
 fi
 
@@ -179,8 +207,8 @@ echo ""
 echo "Configure server time"
 echo "Leave secondary NTP server empty if you only have one (just press enter)."
 echo "  If you need more please modify /etc/ntp.conf after the installation has been completed"
-read -p "Primary NTP server: " NTP1
-read -p "Secondary NTP server: " NTP2
+NTP1=$(reader "Primary NTP server: " "NTP1")
+NTP2=$(reader "Secondary NTP server: " "NTP2")
 echo ""
 if [[ "${DIST}" == "centos" ]]; then
   cat <<EOF > /etc/ntp.conf
@@ -193,7 +221,7 @@ keys /etc/ntp/keys
 disable monitor
 server ${NTP1} iburst
 EOF
-  if [ ! -z ${NTP2} ];then
+  if [ ! -z ${NTP2} ] && [[ "${NTP2}" != "NONE" ]]; then
     echo "server ${NTP2} iburst" >> /etc/ntp.conf
   fi
   systemctl stop ntpd
@@ -208,7 +236,7 @@ elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
 [Time]
 NTP=${NTP1}
 EOF
-  if [ ! -z ${NTP2} ];then
+  if [ ! -z ${NTP2} ] && [[ "${NTP2}" != "NONE" ]]; then
     echo "FallbackNTP=${NTP2}" >> /etc/systemd/timesyncd.conf.d/cts.conf
   fi
   systemctl stop systemd-timesyncd
@@ -296,7 +324,7 @@ while :
     echo ""
     echo "Available interfaces: ${ifaces}"
     echo "  Use one or more, separated by ','"
-    read -p "Monitoring interface(s): " MONITOR
+    MONITOR=$(reader "Monitoring interface(s): " "MONITORING_INTERFACE")
     if_ok="true"
     OLD_IFS=$IFS
     IFS=","
@@ -340,8 +368,8 @@ fi
 echo ""
 echo "Please enter device details. Both init key and device name need to be defined."
 echo "  You should be able to find this information in your enrollment documentation."
-read -p "Init key: " INITKEY
-read -p "Device name: " DEVICENAME
+INITKEY=$(reader "Init key: " "INITKEY")
+DEVICENAME=$(reader "Device name: " "DEVICENAME")
 
 # Initiate CTS
 docker run --network host \
