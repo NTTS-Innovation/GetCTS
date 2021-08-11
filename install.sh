@@ -152,7 +152,7 @@ if [[ "$mount_ok" == "false" ]]; then
   echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
   while :
     do
-      INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "TRY_FORMAT_DISK")
+      INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "FORMAT_DATA_DISK")
       if [[ "${INPUT}" == "YES" ]]; then
         format_disk
         break

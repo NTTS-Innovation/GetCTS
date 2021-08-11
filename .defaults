@@ -1,5 +1,5 @@
-TRY_FORMAT_DISK=""
-# Description: Should the installer try to format a data disk?
+FORMAT_DATA_DISK=""
+# Description: Should the installer format a data disk?
 # Valid input: YES or NO
 # Example: YES
 
