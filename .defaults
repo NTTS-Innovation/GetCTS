@@ -29,6 +29,11 @@ MONITORING_INTERFACE=""
 # Description: Define one or more monitoring interfaces, separated with "," (no space)
 # Example: dummy0,ens1
 
+SERVICE_LEVEL=""
+# Description: Define service level
+# Valid input: CTS-AI or CTS-E
+# Example: CTS-AI
+
 INITKEY=""
 # Description: Type init key
 

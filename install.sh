@@ -365,21 +365,46 @@ if [[ "$?" == "1" ]]; then
   exit 1
 fi
 
-echo ""
-echo "Please enter device details. Both init key and device name need to be defined."
-echo "  You should be able to find this information in your enrollment documentation."
-INITKEY=$(reader "Init key: " "INITKEY")
-DEVICENAME=$(reader "Device name: " "DEVICENAME")
+while :
+  do
+    echo ""
+    echo "Type service level of the device, valid service levels are:"
+    echo "  CTS-AI"
+    echo "  CTS-E"
+    SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
+    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
+      break
+    fi
+    echo "If you want to abort and restart install please press CTRL+C"
+    unset SERVICE_LEVEL
+done
 
-# Initiate CTS
-docker run --network host \
-                --privileged \
-                --rm \
-                -e "INITIATOR_ENV=eu1" \
-                -e "INIT_KEY=${INITKEY}" \
-                -e "DEVICENAME=${DEVICENAME}" \
-                -e "INTERFACES=${MONITOR}" \
-                ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
-                -v /:/rootfs \
-                -v /var/run/docker.sock:/var/run/docker.sock:rw \
-                nttsecurityes/initiator:latest
+if [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
+  echo ""
+  echo "Please enter device details. Both init key and device name need to be defined."
+  echo "  You should be able to find this information in your enrollment documentation."
+  INITKEY=$(reader "Init key: " "INITKEY")
+  DEVICENAME=$(reader "Device name: " "DEVICENAME")
+  # Initiate CTS-E
+  docker run --network host \
+             --privileged \
+             --rm \
+             -e "INITIATOR_ENV=eu1" \
+             -e "INIT_KEY=${INITKEY}" \
+             -e "DEVICENAME=${DEVICENAME}" \
+             -e "INTERFACES=${MONITOR}" \
+             ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
+             -v /:/rootfs \
+             -v /var/run/docker.sock:/var/run/docker.sock:rw \
+             nttsecurityes/initiator:latest
+else
+  # Initiate CTS-AI
+  docker run --network host \
+             --privileged \
+             --rm \
+             -e "INTERFACES=${MONITOR}" \
+             ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
+             -v /:/rootfs \
+             -v /var/run/docker.sock:/var/run/docker.sock:rw \
+             nttsecurityes/initiator:latest
+fi
