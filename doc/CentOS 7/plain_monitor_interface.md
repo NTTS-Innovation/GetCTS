@@ -6,7 +6,7 @@ ONBOOT=yes
 TYPE=Ethernet
 ```
 
-Activate the change, replace eth1 with the name of your monitoring interface
+Activate the change, you might have to restart your server in some cases.
 ```console
 sudo systemctl restart network
 ```
