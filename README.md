@@ -28,17 +28,7 @@ Install CentOS 7 minimal (x86_64) (http://isoredirect.centos.org/centos/7/isos/x
 Make sure to leave dynamic data disk untouched in the installer, it must not be formated. Install and partition system disk using default settings and configure management networks for Internet access. 
 
 ### Bring monitoring interface up
-Edit /etc/sysconfig/network-scripts/ifcfg-"monitoring interface" and add the following 3 lines
-```console
-BOOTPROTO=none
-ONBOOT=yes
-TYPE=Ethernet
-```
- 
-And bring the interface up
-```console
-ifup "monitoring interface"
-```
+Check doc folder in this project and configure your monitoring interface accordingly
 
 ### Install the CTS
 Issue the following command and follow the guide. Once completed the CTS is ready to be assigned to the app by browse to the management IP on http port 80
