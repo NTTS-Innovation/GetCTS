@@ -382,7 +382,7 @@ done
 if [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
   echo ""
   echo "Please enter device details. Both init key and device name need to be defined."
-  echo "  You should be able to find this information in your enrollment documentation."
+  echo "  You should be able to find this information in your enrolment documentation."
   INITKEY=$(reader "Init key: " "INITKEY")
   DEVICENAME=$(reader "Device name: " "DEVICENAME")
   # Initiate CTS-E
@@ -399,6 +399,26 @@ if [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
              nttsecurityes/initiator:latest
 else
   # Initiate CTS-AI
+  if [[ "${DIST}" == "centos" ]]; then
+    echo "CentOS 7 default firewall policy blocks access to HTTP services. You need temporary access to HTTP during enrolment."
+    while :
+      do
+        INPUT=$(reader "Do you want this installer to temporary allow HTTP servies? Type YES or NO: " "ALLOW_HTTP")
+        if [[ "${INPUT}" == "YES" ]]; then
+          firewall-cmd --add-service=http
+          echo "Important! You need to open HTTP manually if you restart the appliance before successful enrolment."
+          echo "  Issue the following command to temporary open for HTTP:"
+          echo "  firewall-cmd --add-service=http"
+          break
+        fi
+        if [[ "${INPUT}" == "NO" ]]; then
+          echo "WARNING! You did not open for HTTP. The enrolment web page will not be available."
+          echo "  Issue the following command to temporary open for HTTP:"
+          echo "  firewall-cmd --add-service=http"
+          break
+        fi
+    done
+  fi
   docker run --network host \
              --privileged \
              --rm \
