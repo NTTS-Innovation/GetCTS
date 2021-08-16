@@ -34,6 +34,11 @@ SERVICE_LEVEL=""
 # Valid input: CTS-AI or CTS-E
 # Example: CTS-AI
 
+ALLOW_HTTP=""
+# Description: Allow temporary access to HTTP during enrolment
+# Valid input: YES or NO
+# Example: YES
+
 INITKEY=""
 # Description: Type init key
 
