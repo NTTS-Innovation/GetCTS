@@ -3,7 +3,7 @@ Build / configure a host. Bare metal is always the best choice but virtual works
 
 ### Hardware specifications
 #### 500 Mbit/s
-* CPU: 1 x Intel Core i9 with 8 threads
+* CPU: 1 x 8 core
 * Memory: 32 Gb RAM
 * Disk:
   * System: 300 Gb
@@ -13,7 +13,7 @@ Build / configure a host. Bare metal is always the best choice but virtual works
   * Monitoring: 1 x 1 Gbit
 
 #### 1 Gb/s
-* CPU: 1 x core i9 with 8 threads
+* CPU: 1 x 8 core
 * Memory: 40 Gb RAM
 * Disk:
   * System: 300 Gb
