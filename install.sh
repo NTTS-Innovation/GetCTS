@@ -138,6 +138,21 @@ else
   exit 1
 fi
 
+while :
+  do
+    echo ""
+    echo "Type service level of the device, valid service levels are:"
+    echo "  CTS-AI"
+    echo "  CTS-E"
+    echo "  CTS-S"
+    SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
+    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; then
+      break
+    fi
+    echo "If you want to abort and restart install please press CTRL+C"
+    unset SERVICE_LEVEL
+done
+
 # Check if /srv/docker/cts/data is a mount
 mount_ok="false"
 for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data
@@ -163,6 +178,39 @@ if [[ "$mount_ok" == "false" ]]; then
   done
 fi
 set -e
+
+if [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
+  echo "Do you want network recorder to store data to the default data storage disk (/srv/docker/cts/data) or do you wish to use a RAM disk?"
+  echo "  RAM disk requires at least 40Gb extra ram (minimum 104Gb in total) and should only be used under special circumstances"
+  while :
+    do
+      INPUT=$(reader "Type DISK (default) or RAM: " "NETWORK_RECORDER_LOCATION")
+      if [[ "${INPUT}" == "DISK" ]]; then
+        break
+      fi
+      if [[ "${INPUT}" == "RAM" ]]; then
+        # Make sure there is more than 104Gb of ram (using decimal)
+        AVAILABLE_RAM_KB=$(cat /proc/meminfo | grep "MemTotal:" | awk '{print $2}')
+        if (( ${AVAILABLE_RAM_KB} < 104000000 )); then
+          echo "RAM disk requires at least 40Gb RAM, minimum 104Gb in total. You have ${AVAILABLE_RAM_KB} kB available."
+          echo "  Example: 500 Mbit CTE-E requires at least 64Gb + 40Gb = 104Gb total RAM."
+          echo "  Abort using CTRL+C and add more RAM or use DISK instead"
+          continue
+        fi
+        # Create RAM disk for stenotype
+        echo ""
+          mkdir -p /srv/docker/cts/data/stenographer
+          if ! grep "/srv/docker/cts/data/stenographer" /etc/fstab; then
+            echo "Adding mount to /etc/fstab"
+            echo "tmpfs /srv/docker/cts/data/stenographer tmpfs nodev,nosuid,noexec,nodiratime,size=40960M 0 0" >> /etc/fstab
+          else
+            echo "Mount already exists in /etc/fstab"
+          fi
+          mount -a
+          break
+      fi
+  done
+fi
 
 # Update system and kernel
 echo "Updating operating system and kernel"
@@ -364,21 +412,6 @@ if [[ "$?" == "1" ]]; then
   echo "docker run ${http_proxy_string}${https_proxy_string}--entrypoint /bin/bash -it nttsecurityes/initiator:latest /usr/local/bin/check_internet_access"
   exit 1
 fi
-
-while :
-  do
-    echo ""
-    echo "Type service level of the device, valid service levels are:"
-    echo "  CTS-AI"
-    echo "  CTS-E"
-    echo "  CTS-S"
-    SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; then
-      break
-    fi
-    echo "If you want to abort and restart install please press CTRL+C"
-    unset SERVICE_LEVEL
-done
 
 if [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; then
   echo ""
