@@ -371,15 +371,16 @@ while :
     echo "Type service level of the device, valid service levels are:"
     echo "  CTS-AI"
     echo "  CTS-E"
+    echo "  CTS-S"
     SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
+    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; then
       break
     fi
     echo "If you want to abort and restart install please press CTRL+C"
     unset SERVICE_LEVEL
 done
 
-if [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
+if [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; then
   echo ""
   echo "Please enter device details. Both init key and device name need to be defined."
   echo "  You should be able to find this information in your enrolment documentation."
