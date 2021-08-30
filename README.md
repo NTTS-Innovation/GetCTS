@@ -2,7 +2,8 @@
 Build / configure a host. Bare metal is always the best choice but virtual works when no other options is available.
 
 ### Hardware specifications
-#### 500 Mbit/s
+#### CTS-AI
+##### 500 Mbit/s
 * CPU: 1 x 8 core
 * Memory: 32 Gb RAM
 * Disk:
@@ -12,7 +13,7 @@ Build / configure a host. Bare metal is always the best choice but virtual works
   * Management:  1 x 1 Gbit
   * Monitoring: 1 x 1 Gbit
 
-#### 1 Gb/s
+##### 1 Gb/s
 * CPU: 1 x 8 core
 * Memory: 40 Gb RAM
 * Disk:
