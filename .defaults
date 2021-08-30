@@ -1,6 +1,6 @@
 SERVICE_LEVEL=""
 # Description: Define service level
-# Valid input: CTS-AI, CTS-E or CTS-S
+# Valid input: CTS-AI, CTS-E, CTS-S or PREPARE
 # Example: CTS-AI
 
 FORMAT_DATA_DISK=""
@@ -21,6 +21,11 @@ NETWORK_RECORDER_LOCATION=""
 # Description: Network recorder storage location. DISK (normal use case) will use existing data disk and RAM will use a RAM disk
 # Valid input: DISK or RAM
 # Example: DISK
+
+CREATE_SUPPORT_USER=""
+# Description: Option to create NTT support user (nttsecurity)
+# Valid input: YES or NO
+# Example: Yes
 
 SUPPORT_USER_PASSWORD="" 
 # Description: Password for nttsecurity support user
