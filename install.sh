@@ -76,7 +76,7 @@ format_disk() {
       echo ""
       echo "Are you SURE you want to delete all data on $disk?"
       INPUT=$(reader "Type YES to delete all data and partition $disk: " "DELETE_DATA_DISK")
-      if [[ "${INPUT}" == "YES" ]]; then
+      if [[ "${INPUT^^}" == "YES" ]]; then
         break
       fi
       echo "If you want to abort and restart install please press CTRL+C"
@@ -148,7 +148,7 @@ while :
     echo "  CTS-S"
     echo "  PREPARE"
     SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL}" == "PREPARE" ]]; then
+    if [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
       break
     fi
     echo "If you want to abort and restart install please press CTRL+C"
@@ -170,27 +170,27 @@ if [[ "$mount_ok" == "false" ]]; then
   while :
     do
       INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "FORMAT_DATA_DISK")
-      if [[ "${INPUT}" == "YES" ]]; then
+      if [[ "${INPUT^^}" == "YES" ]]; then
         format_disk
         break
       fi
-      if [[ "${INPUT}" == "NO" ]]; then
+      if [[ "${INPUT^^}" == "NO" ]]; then
         exit 1
       fi
   done
 fi
 set -e
 
-if [[ "${SERVICE_LEVEL}" == "CTS-E" ]]; then
+if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]]; then
   echo "Do you want network recorder to store data to the default data storage disk (/srv/docker/cts/data) or do you wish to use a RAM disk?"
   echo "  RAM disk requires at least 40Gb extra ram (minimum 104Gb in total) and should only be used under special circumstances"
   while :
     do
       INPUT=$(reader "Type DISK (default) or RAM: " "NETWORK_RECORDER_LOCATION")
-      if [[ "${INPUT}" == "DISK" ]]; then
+      if [[ "${INPUT^^}" == "DISK" ]]; then
         break
       fi
-      if [[ "${INPUT}" == "RAM" ]]; then
+      if [[ "${INPUT^^}" == "RAM" ]]; then
         # Make sure there is more than 104Gb of ram (using decimal)
         AVAILABLE_RAM_KB=$(cat /proc/meminfo | grep "MemTotal:" | awk '{print $2}')
         if (( ${AVAILABLE_RAM_KB} < 104000000 )); then
@@ -232,7 +232,7 @@ echo ""
   while :
     do
       INPUT=$(reader "Do you want to create NTT support user (nttsecurity)? Type YES or NO: " "CREATE_SUPPORT_USER")
-      if [[ "${INPUT}" == "YES" ]]; then
+      if [[ "${INPUT^^}" == "YES" ]]; then
         echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
         echo "This password needs to be distributed to NTT Service transition team for management"
         echo ""
@@ -249,7 +249,7 @@ echo ""
         fi
         break
       fi
-      if [[ "${INPUT}" == "NO" ]]; then
+      if [[ "${INPUT^^}" == "NO" ]]; then
         break
       fi
   done
@@ -280,7 +280,7 @@ keys /etc/ntp/keys
 disable monitor
 server ${NTP1} iburst
 EOF
-  if [ ! -z ${NTP2} ] && [[ "${NTP2}" != "NONE" ]]; then
+  if [ ! -z ${NTP2} ] && [[ "${NTP2^^}" != "NONE" ]]; then
     echo "server ${NTP2} iburst" >> /etc/ntp.conf
   fi
   systemctl stop ntpd
@@ -295,7 +295,7 @@ elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
 [Time]
 NTP=${NTP1}
 EOF
-  if [ ! -z ${NTP2} ] && [[ "${NTP2}" != "NONE" ]]; then
+  if [ ! -z ${NTP2} ] && [[ "${NTP2^^}" != "NONE" ]]; then
     echo "FallbackNTP=${NTP2}" >> /etc/systemd/timesyncd.conf.d/cts.conf
   fi
   systemctl stop systemd-timesyncd
@@ -424,7 +424,7 @@ if [[ "$?" == "1" ]]; then
   exit 1
 fi
 
-if [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; then
+if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]]; then
   echo ""
   echo "Please enter device details. Both init key and device name need to be defined."
   echo "  You should be able to find this information in your enrolment documentation."
@@ -442,21 +442,21 @@ if [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; t
              -v /:/rootfs \
              -v /var/run/docker.sock:/var/run/docker.sock:rw \
              nttsecurityes/initiator:latest
-elif [[ "${SERVICE_LEVEL}" == "CTS-AI" ]]; then
+elif [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]]; then
   # Initiate CTS-AI
   if [[ "${DIST}" == "centos" ]]; then
     echo "CentOS 7 default firewall policy blocks access to HTTP services. You need temporary access to HTTP during enrolment."
     while :
       do
         INPUT=$(reader "Do you want this installer to temporary allow HTTP servies? Type YES or NO: " "ALLOW_HTTP")
-        if [[ "${INPUT}" == "YES" ]]; then
+        if [[ "${INPUT^^}" == "YES" ]]; then
           firewall-cmd --add-service=http
           echo "Important! You need to open HTTP manually if you restart the appliance before successful enrolment."
           echo "  Issue the following command to temporary open for HTTP:"
           echo "  firewall-cmd --add-service=http"
           break
         fi
-        if [[ "${INPUT}" == "NO" ]]; then
+        if [[ "${INPUT^^}" == "NO" ]]; then
           echo "WARNING! You did not open for HTTP. The enrolment web page will not be available."
           echo "  Issue the following command to temporary open for HTTP:"
           echo "  firewall-cmd --add-service=http"
