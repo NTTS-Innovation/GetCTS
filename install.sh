@@ -142,11 +142,13 @@ while :
   do
     echo ""
     echo "Type service level of the device, valid service levels are:"
+    echo "  'PREPARE' does not initiate the CTS, it will just install and prepare for initiation"
     echo "  CTS-AI"
     echo "  CTS-E"
     echo "  CTS-S"
+    echo "  PREPARE"
     SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; then
+    if [[ "${SERVICE_LEVEL}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL}" == "PREPARE" ]]; then
       break
     fi
     echo "If you want to abort and restart install please press CTRL+C"
@@ -227,21 +229,30 @@ fi
 
 # Create support user for NTT
 echo ""
-echo "Creating nttsecurity support user"
-echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
-echo "This password needs to be distributed to NTT Service transition team for management"
-echo ""
-if [[ "${DIST}" == "centos" ]]; then
-  adduser nttsecurity || true
-  CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-  echo ${CREDENTIALS} | passwd nttsecurity --stdin
-  usermod -aG wheel nttsecurity
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  adduser --disabled-password --gecos "" nttsecurity || true
-  CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-  echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
-  usermod -aG sudo nttsecurity
-fi
+  while :
+    do
+      INPUT=$(reader "Do you want to create NTT support user (nttsecurity)? Type YES or NO: " "CREATE_SUPPORT_USER")
+      if [[ "${INPUT}" == "YES" ]]; then
+        echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
+        echo "This password needs to be distributed to NTT Service transition team for management"
+        echo ""
+        if [[ "${DIST}" == "centos" ]]; then
+          adduser nttsecurity || true
+          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+          echo ${CREDENTIALS} | passwd nttsecurity --stdin
+          usermod -aG wheel nttsecurity
+        elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+          adduser --disabled-password --gecos "" nttsecurity || true
+          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+          echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
+          usermod -aG sudo nttsecurity
+        fi
+        break
+      fi
+      if [[ "${INPUT}" == "NO" ]]; then
+        break
+      fi
+  done
 
 # Install required packages
 if [[ "${DIST}" == "centos" ]]; then
@@ -431,7 +442,7 @@ if [[ "${SERVICE_LEVEL}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL}" == "CTS-S" ]]; t
              -v /:/rootfs \
              -v /var/run/docker.sock:/var/run/docker.sock:rw \
              nttsecurityes/initiator:latest
-else
+elif [[ "${SERVICE_LEVEL}" == "CTS-AI" ]]; then
   # Initiate CTS-AI
   if [[ "${DIST}" == "centos" ]]; then
     echo "CentOS 7 default firewall policy blocks access to HTTP services. You need temporary access to HTTP during enrolment."
@@ -461,4 +472,8 @@ else
              -v /:/rootfs \
              -v /var/run/docker.sock:/var/run/docker.sock:rw \
              nttsecurityes/initiator:latest
+else
+  # Just prepare for initiation
+  echo ""
+  echo "This instance has been prepared to initiate an CTS. You need to manually execute initiation command or rerun this script and select another service to complete the enrolment"
 fi
