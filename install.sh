@@ -256,9 +256,11 @@ echo ""
 
 # Install required packages
 if [[ "${DIST}" == "centos" ]]; then
-  yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2
+  yum install -y epel-release
+  yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2 iftop
+
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate
+  apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop
 fi
 
 # Configure NTP
