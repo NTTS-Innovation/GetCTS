@@ -1,11 +1,12 @@
 
 # Requirements
 
-Install iftop
+Install iftop if it does not already exist. It's preinstalled if install.sh was used to deploy the CTS
 
 ## CentOS
 
 ```console
+sudo yum -y install epel-release
 sudo yum -y install iftop
 ```
 
