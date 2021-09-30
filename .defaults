@@ -54,3 +54,6 @@ INITKEY=""
 
 DEVICENAME=""
 # Description: Define wanted device name, will be used to identify the device in reports
+
+CUSTOM_ENVIRONMENT=""
+# Description: Enroll to custom environment

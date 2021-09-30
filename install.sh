@@ -401,6 +401,10 @@ while :
       break
     fi
 done
+# Enroll to custom environment
+if [ ! -z ${CUSTOM_ENVIRONMENT} ]; then
+  env_string="-e INITIATOR_ENV=${CUSTOM_ENVIRONMENT}"
+fi
 
 # Test connectivity
 echo ""
@@ -441,6 +445,7 @@ if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]
              -e "DEVICENAME=${DEVICENAME}" \
              -e "INTERFACES=${MONITOR}" \
              ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
+             ${env_string} \
              -v /:/rootfs \
              -v /var/run/docker.sock:/var/run/docker.sock:rw \
              nttsecurityes/initiator:latest
@@ -471,6 +476,7 @@ elif [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]]; then
              --rm \
              -e "INTERFACES=${MONITOR}" \
              ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
+             ${env_string} \
              -v /:/rootfs \
              -v /var/run/docker.sock:/var/run/docker.sock:rw \
              nttsecurityes/initiator:latest
@@ -478,4 +484,6 @@ else
   # Just prepare for initiation
   echo ""
   echo "This instance has been prepared to initiate an CTS. You need to manually execute initiation command or rerun this script and select another service to complete the enrolment"
+  echo "Example command to enroll CTS-AI:"
+  echo "  sudo docker run --network host --privileged --rm -e "INTERFACES=${MONITOR}" ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} ${env_string} -v /:/rootfs -v /var/run/docker.sock:/var/run/docker.sock:rw nttsecurityes/initiator:latest" | xargs
 fi
