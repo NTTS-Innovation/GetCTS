@@ -37,7 +37,7 @@ vercomp () {
 }
 
 format_disk() {
-  disks=$(lsblk -dpno name)
+  disks=$(lsblk -dpno name | sed -e 's/[^ ]*loop[^ ]*//ig' | xargs)
   unformated_disks=""
   echo ""
   echo "Available disks to partition and format for data storage:"
