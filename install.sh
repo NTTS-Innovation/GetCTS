@@ -129,12 +129,10 @@ if [ -f "/etc/os-release" ]; then
       DIST=${ID}
   else
       echo "Unsupported Linux dist detected: ${ID}, aborting!"
-      clean
       exit 1
   fi
 else
   echo "/etc/os-release is missing, that should not happend, aborting!"
-  clean
   exit 1
 fi
 
