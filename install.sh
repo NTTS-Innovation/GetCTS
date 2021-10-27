@@ -124,12 +124,30 @@ fi
 # Load os-release so we know on what dist we are
 if [ -f "/etc/os-release" ]; then
   . /etc/os-release
-  if [[ "${ID}" == "centos" ]] || [[ "${ID}" == "ubuntu" ]] || [[ "${ID}" == "debian" ]]; then
-      echo "Supported Linux dist detected: ${ID}"
+  if [[ "${ID}" == "centos" ]]; then
+    if [[ "${VERSION_ID}" == "7" ]]; then
+      echo "Supported Linux dist detected: ${ID} ${VERSION_ID}"
       DIST=${ID}
-  else
-      echo "Unsupported Linux dist detected: ${ID}, aborting!"
+    else
+      echo "Unsupported Linux dist detected: ${ID} ${VERSION_ID}, aborting!"
       exit 1
+    fi
+  elif [[ "${ID}" == "ubuntu" ]]; then
+    if [[ "${VERSION_ID}" == "20.04" ]]; then
+      echo "Supported Linux dist detected: ${ID} ${VERSION_ID}"
+      DIST=${ID}
+    else
+      echo "Unsupported Linux dist detected: ${ID} ${VERSION_ID}, aborting!"
+      exit 1
+    fi
+  elif [[ "${ID}" == "debian" ]]; then
+    if [[ "${VERSION_ID}" == "10" ]]; then
+      echo "Supported Linux dist detected: ${ID} ${VERSION_ID}"
+      DIST=${ID}
+    else
+      echo "Unsupported Linux dist detected: ${ID} ${VERSION_ID}, aborting!"
+      exit 1
+    fi
   fi
 else
   echo "/etc/os-release is missing, that should not happend, aborting!"
