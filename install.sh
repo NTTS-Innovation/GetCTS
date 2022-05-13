@@ -368,10 +368,8 @@ EOF
           break
         fi
     done
-
-
-
 fi
+
 # Creating dummy0 interface
 if [[ "${DIST}" == "centos" ]]; then
   # Some AWS instances of CentOS 7 hang during boot, we need a work around for them
@@ -416,6 +414,7 @@ EOF
   echo "Sleeping for 10 seconds to make sure all interfaces has been reloaded"
   sleep 10
 fi
+
 # Install Docker
 echo ""
 echo "Removing unwanted packages, error messages may occur"
