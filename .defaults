@@ -31,6 +31,11 @@ SUPPORT_USER_PASSWORD=""
 # Description: Password for nttsecurity support user
 # Example: S0m3 thING# r@ndOOM
 
+CONFIGURE_UNATTENDED_UPDATES=""
+# Description: Configure system for automatic updates and reboots if nesseary
+# Valid input: YES or NO
+# Example: Yes
+
 NTP1="" 
 # Description: Primary NTP server
 # Example: 0.se.pool.ntp.org

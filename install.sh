@@ -325,6 +325,53 @@ EOF
   timedatectl set-timezone UTC
 fi
 
+# Configure unattended upgrades
+if [[ "${DIST}" == "ubuntu" ]]; then
+  echo ""
+    while :
+      do
+        INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
+        if [[ "${INPUT^^}" == "YES" ]]; then
+          DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
+          systemctl start unattended-upgrades
+          systemctl enable unattended-upgrades
+          cat <<EOF > /etc/apt/apt.conf.d/50unattended-upgrades
+Unattended-Upgrade::Allowed-Origins {
+  "\${distro_id}:\${distro_codename}";
+  "\${distro_id}:\${distro_codename}-security";
+  "\${distro_id}ESMApps:\${distro_codename}-apps-security";
+  "\${distro_id}ESM:\${distro_codename}-infra-security";
+  "\${distro_id}:\${distro_codename}-updates";
+};
+Unattended-Upgrade::Package-Blacklist {
+  "linux-headers*";
+  "linux-image*";
+  "linux-generic*";
+  "linux-modules*";
+  "docker-ce*";
+  "containerd.io";
+};
+Unattended-Upgrade::DevRelease "auto";
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+Unattended-Upgrade::MinimalSteps "true";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+Unattended-Upgrade::SyslogEnable "true";
+Unattended-Upgrade::SyslogFacility "daemon";
+EOF
+          break
+        fi
+        if [[ "${INPUT^^}" == "NO" ]]; then
+          break
+        fi
+    done
+
+
+
+fi
 # Creating dummy0 interface
 if [[ "${DIST}" == "centos" ]]; then
   # Some AWS instances of CentOS 7 hang during boot, we need a work around for them
