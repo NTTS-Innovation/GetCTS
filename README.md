@@ -86,5 +86,5 @@ Check doc folder in this project and configure your monitoring interface accordi
 ### Install the CTS
 Issue the following command and follow the guide. Once completed the CTS is ready to be assigned to the app by browse to the management IP on http port 80
 ```console
-curl -s -L https://git.io/JZmVM --output install.sh && sudo bash ./install.sh
+wget -q -O install.sh https://git.io/JZmVM && sudo bash ./install.sh
 ```
