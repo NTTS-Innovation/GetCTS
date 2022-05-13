@@ -9,19 +9,19 @@ Capabilities for each version are summarized in the Table 1 below.
 | Capability | Enhanced | Standard |
 | --- | --- | --- |
 | Supported service | TD-E & MDR | SOCaaS |
-|Alert and corresponding evidence data (PCAP) sent to SOC Security Analyst for investigation|x|N/A|
-|Full PCAP|x|N/A|
-|Alert auto-generates Security Incident Report|N/A|x|
+| Alert and corresponding evidence data (PCAP) sent to SOC Security Analyst for investigation | x | N/A |
+| Full PCAP | x | N/A |
+| Alert auto-generates Security Incident Report | N/A | x |
 
 Table 1 CTS capabilities
 
 NTT provides specifications for 500 Mbps, 1 Gbps and 4 Gbps throughput.
 
-|CTS throughput|Hardware deployment|Virtual deployment|
+| CTS throughput | Hardware deployment | Virtual deployment |
 | --- | --- | --- |
-|500 Mbps|x|x|
-|1 Gbps|x|x|
-|4 Gbps|x|N/A|
+| 500 Mbps | x | x |
+| 1 Gbps | x | x |
+| 4 Gbps | x | N/A |
 
 Table 2 Deployment alternatives
 
@@ -84,7 +84,7 @@ Install OS using default settings except for:
 Check doc folder in this project and configure your monitoring interface accordingly
 
 ### Install the CTS
-Issue the following command and follow the guide. Once completed the CTS is ready to be assigned to the app by browse to the management IP on http port 80
+Issue the following command and follow the guide. Once completed the CTS is ready.
 ```console
 wget -q -O install.sh https://git.io/JZmVM && sudo bash ./install.sh
 ```
