@@ -171,6 +171,56 @@ while :
     unset SERVICE_LEVEL
 done
 
+# Update system and kernel
+echo "Updating operating system and kernel"
+if [[ "${DIST}" == "centos" ]]; then
+  yum clean all && yum -y update && yum -y update kernel
+  if ! vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION}; then
+    echo "Running Kernel version is too old and the system was just updated to latest version"
+    echo "Please reboot and run this command again"
+    exit 1
+  fi
+elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+  apt update
+  DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
+fi
+
+# Install required packages
+if [[ "${DIST}" == "centos" ]]; then
+  yum install -y epel-release
+  yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2 iftop
+
+elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+  DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted
+fi
+
+# Create support user for NTT
+echo ""
+  while :
+    do
+      INPUT=$(reader "Do you want to create NTT support user (nttsecurity)? Type YES or NO: " "CREATE_SUPPORT_USER")
+      if [[ "${INPUT^^}" == "YES" ]]; then
+        echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
+        echo "This password needs to be distributed to NTT Service transition team for management"
+        echo ""
+        if [[ "${DIST}" == "centos" ]]; then
+          adduser nttsecurity || true
+          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+          echo ${CREDENTIALS} | passwd nttsecurity --stdin
+          usermod -aG wheel nttsecurity
+        elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+          adduser --disabled-password --gecos "" nttsecurity || true
+          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+          echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
+          usermod -aG sudo nttsecurity
+        fi
+        break
+      fi
+      if [[ "${INPUT^^}" == "NO" ]]; then
+        break
+      fi
+  done
+
 # Check if /srv/docker/cts/data is a mount
 mount_ok="false"
 for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data
@@ -228,55 +278,6 @@ if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]]; then
           break
       fi
   done
-fi
-
-# Update system and kernel
-echo "Updating operating system and kernel"
-if [[ "${DIST}" == "centos" ]]; then
-  yum clean all && yum -y update && yum -y update kernel
-  if ! vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION}; then
-    echo "Running Kernel version is too old and the system was just updated to latest version"
-    echo "Please reboot and run this command again"
-    exit 1
-  fi
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  apt update && apt -y dist-upgrade
-fi
-
-# Create support user for NTT
-echo ""
-  while :
-    do
-      INPUT=$(reader "Do you want to create NTT support user (nttsecurity)? Type YES or NO: " "CREATE_SUPPORT_USER")
-      if [[ "${INPUT^^}" == "YES" ]]; then
-        echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
-        echo "This password needs to be distributed to NTT Service transition team for management"
-        echo ""
-        if [[ "${DIST}" == "centos" ]]; then
-          adduser nttsecurity || true
-          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-          echo ${CREDENTIALS} | passwd nttsecurity --stdin
-          usermod -aG wheel nttsecurity
-        elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-          adduser --disabled-password --gecos "" nttsecurity || true
-          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-          echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
-          usermod -aG sudo nttsecurity
-        fi
-        break
-      fi
-      if [[ "${INPUT^^}" == "NO" ]]; then
-        break
-      fi
-  done
-
-# Install required packages
-if [[ "${DIST}" == "centos" ]]; then
-  yum install -y epel-release
-  yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2 iftop
-
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd
 fi
 
 # Configure NTP
@@ -389,7 +390,7 @@ elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
   echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
   apt -y update
-  apt -y install docker-ce docker-ce-cli containerd.io
+  DEBIAN_FRONTEND=noninteractive apt -y install docker-ce docker-ce-cli containerd.io
 fi
 systemctl enable docker
 systemctl start docker
