@@ -133,7 +133,7 @@ if [ -f "/etc/os-release" ]; then
       exit 1
     fi
   elif [[ "${ID}" == "ubuntu" ]]; then
-    if [[ "${VERSION_ID}" == "20.04" ]]; then
+    if [[ "${VERSION_ID}" == "20.04" ]] or [[ "${VERSION_ID}" == "22.04" ]]; then
       echo "Supported Linux dist detected: ${ID} ${VERSION_ID}"
       DIST=${ID}
     else
