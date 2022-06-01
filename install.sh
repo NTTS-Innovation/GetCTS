@@ -326,15 +326,13 @@ EOF
 fi
 
 # Configure unattended upgrades
-if [[ "${DIST}" == "ubuntu" ]]; then
-  echo ""
-    while :
-      do
-        INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
-        if [[ "${INPUT^^}" == "YES" ]]; then
+echo ""
+  while :
+    do
+      INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
+      if [[ "${INPUT^^}" == "YES" ]]; then
+        if [[ "${DIST}" == "ubuntu" ]]; then
           DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
-          systemctl start unattended-upgrades
-          systemctl enable unattended-upgrades
           cat <<EOF > /etc/apt/apt.conf.d/50unattended-upgrades
 Unattended-Upgrade::Allowed-Origins {
   "\${distro_id}:\${distro_codename}";
@@ -362,13 +360,37 @@ Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
 Unattended-Upgrade::SyslogEnable "true";
 Unattended-Upgrade::SyslogFacility "daemon";
 EOF
-          break
+          systemctl enable unattended-upgrades
+          systemctl start unattended-upgrades
+        elif [[ "${DIST}" == "centos" ]]; then
+          yum -y install yum-cron
+          cat << EOF > /etc/yum/yum-cron.conf
+[commands]
+update_cmd = default
+update_messages = yes
+download_updates = yes
+apply_updates = yes
+random_sleep = 360
+[emitters]
+system_name = None
+emit_via = stdio
+output_width = 80
+[base]
+debuglevel = -2
+skip_broken = True
+mdpolicy = group:main
+assumeyes = True
+exclude = kernel* container* docker*
+EOF
+          systemctl enable yum-cron
+          systemctl start yum-cron
         fi
-        if [[ "${INPUT^^}" == "NO" ]]; then
-          break
-        fi
-    done
-fi
+        break
+      fi
+      if [[ "${INPUT^^}" == "NO" ]]; then
+        break
+      fi
+  done
 
 # Creating dummy0 interface
 if [[ "${DIST}" == "centos" ]]; then
