@@ -171,6 +171,22 @@ while :
     unset SERVICE_LEVEL
 done
 
+# Configure repositories
+if [[ "${ID}" == "ubuntu" ]] && [[ "${VERSION_ID}" == "22.04" ]]; then
+  cat <<EOF > /etc/apt/sources.list
+deb http://archive.ubuntu.com/ubuntu jammy main restricted
+deb http://archive.ubuntu.com/ubuntu jammy-updates main restricted
+deb http://archive.ubuntu.com/ubuntu jammy universe
+deb http://archive.ubuntu.com/ubuntu jammy-updates universe
+deb http://archive.ubuntu.com/ubuntu jammy multiverse
+deb http://archive.ubuntu.com/ubuntu jammy-updates multiverse
+deb http://archive.ubuntu.com/ubuntu jammy-backports main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu jammy-security main restricted
+deb http://archive.ubuntu.com/ubuntu jammy-security universe
+deb http://archive.ubuntu.com/ubuntu jammy-security multiverse
+EOF
+fi
+
 # Update system and kernel
 echo "Updating operating system and kernel"
 if [[ "${DIST}" == "centos" ]]; then
