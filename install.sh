@@ -154,6 +154,31 @@ else
   exit 1
 fi
 
+if (( $EUID != 0 )); then
+    echo "Please execute the script with sudo"
+    exit
+fi
+
+# Check disks and fail early if no unformatted disks available
+check_unformated_disks(){
+  disks=$(lsblk -dpno name | sed -e 's/[^ ]*loop[^ ]*//ig' | xargs)
+  unformated_disks=""
+  for d in $disks
+    do
+      if [[ $(/sbin/sfdisk -d ${d} 2>&1) == ""  || $(/sbin/sfdisk -d ${d} 2>&1) == *"does not contain a recognized partition table"* ]]; then
+        unformated_disks="$d $unformated_disks"
+      fi
+  done
+  echo ""
+  if [[ ${unformated_disks} == "" ]]; then
+    echo "No unformated disks for data storage were found. Please add an unpartitioned disk and"
+    echo "  start this installer again. Aborting..."
+    exit 1
+  fi
+}
+check_unformated_disks
+
+
 while :
   do
     echo ""
@@ -342,14 +367,32 @@ EOF
 fi
 
 # Configure unattended upgrades
-echo ""
-  while :
-    do
-      INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
-      if [[ "${INPUT^^}" == "YES" ]]; then
-        if [[ "${DIST}" == "ubuntu" ]]; then
-          DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
-          cat <<EOF > /etc/apt/apt.conf.d/50unattended-upgrades
+install_unattended() {
+    while :; do
+        INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
+        if [[ "${INPUT^^}" == "YES" ]]; then
+            if [[ "${DIST}" == "ubuntu" ]]; then
+                DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
+                configure_unattended
+            elif [[ "${DIST}" == "centos" ]]; then
+                yum -y install yum-cron
+                configure_unattended
+            fi
+            break
+        fi
+        if [[ "${INPUT^^}" == "NO" ]]; then
+            break
+        fi
+    done
+}
+
+configure_unattended() {
+    if [[ "${DIST}" == "ubuntu" ]]; then
+        # Move the old config
+        if test -f "/etc/apt/apt.conf.d/50unattended-upgrades"; then
+            mv "/etc/apt/apt.conf.d/50unattended-upgrades" "/etc/apt/apt.conf.d/50unattended-upgrades_old"
+        fi
+        cat <<EOF >/etc/apt/apt.conf.d/50unattended-upgrades
 Unattended-Upgrade::Allowed-Origins {
   "\${distro_id}:\${distro_codename}";
   "\${distro_id}:\${distro_codename}-security";
@@ -376,11 +419,14 @@ Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
 Unattended-Upgrade::SyslogEnable "true";
 Unattended-Upgrade::SyslogFacility "daemon";
 EOF
-          systemctl enable unattended-upgrades
-          systemctl start unattended-upgrades
-        elif [[ "${DIST}" == "centos" ]]; then
-          yum -y install yum-cron
-          cat << EOF > /etc/yum/yum-cron.conf
+        systemctl enable unattended-upgrades
+        systemctl start unattended-upgrades
+    elif [[ "${DIST}" == "centos" ]]; then
+        # Move the old config
+        if test -f "/etc/yum/yum-cron.conf"; then
+            mv "/etc/yum/yum-cron.conf" "/etc/yum/yum-cron.conf_old"
+        fi
+        cat <<EOF >/etc/yum/yum-cron.conf
 [commands]
 update_cmd = default
 update_messages = yes
@@ -398,15 +444,20 @@ mdpolicy = group:main
 assumeyes = True
 exclude = kernel* container* docker*
 EOF
-          systemctl enable yum-cron
-          systemctl start yum-cron
-        fi
-        break
-      fi
-      if [[ "${INPUT^^}" == "NO" ]]; then
-        break
-      fi
-  done
+        systemctl enable yum-cron
+        systemctl start yum-cron
+    fi
+}
+
+# if unattended-upgrades is not installed, ask user for installation
+if ! command -v unattended-upgrades &>/dev/null; then
+    install_unattended
+    configure_unattended
+else
+    # if it is installed, adjust the conf and enable the service
+    echo "unattended-upgrades already installed, updating config"
+    configure_unattended
+fi
 
 # Creating dummy0 interface
 if [[ "${DIST}" == "centos" ]]; then
