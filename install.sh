@@ -5,33 +5,27 @@ set -e
 MIN_KERNEL_VERSION="3.10.0-1127.8.2.el7.x86_64"
 RUNNING_KERNEL_VERSION=$(uname -r)
 
-vercomp () {
-  if [[ $1 == $2 ]]
-  then
-      return 0
+vercomp() {
+  if [[ $1 == $2 ]]; then
+    return 0
   fi
   local IFS=.
   local i ver1=($1) ver2=($2)
   # fill empty fields in ver1 with zeros
-  for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
-  do
-      ver1[i]=0
+  for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
+    ver1[i]=0
   done
-  for ((i=0; i<${#ver1[@]}; i++))
-  do
-      if [[ -z ${ver2[i]} ]]
-      then
-          # fill empty fields in ver2 with zeros
-          ver2[i]=0
-      fi
-      if ((10#${ver1[i]} > 10#${ver2[i]}))
-      then
-          return 0
-      fi
-      if ((10#${ver1[i]} < 10#${ver2[i]}))
-      then
-          return 1
-      fi
+  for ((i = 0; i < ${#ver1[@]}; i++)); do
+    if [[ -z ${ver2[i]} ]]; then
+      # fill empty fields in ver2 with zeros
+      ver2[i]=0
+    fi
+    if ((10#${ver1[i]} > 10#${ver2[i]})); then
+      return 0
+    fi
+    if ((10#${ver1[i]} < 10#${ver2[i]})); then
+      return 1
+    fi
   done
   return 0
 }
@@ -41,12 +35,11 @@ format_disk() {
   unformated_disks=""
   echo ""
   echo "Available disks to partition and format for data storage:"
-  for d in $disks
-    do
-      if [[ $(/sbin/sfdisk -d ${d} 2>&1) == ""  || $(/sbin/sfdisk -d ${d} 2>&1) == *"does not contain a recognized partition table"* ]]; then
-        echo "  $d"
-        unformated_disks="$d $unformated_disks"
-      fi
+  for d in $disks; do
+    if [[ $(/sbin/sfdisk -d ${d} 2>&1) == "" || $(/sbin/sfdisk -d ${d} 2>&1) == *"does not contain a recognized partition table"* ]]; then
+      echo "  $d"
+      unformated_disks="$d $unformated_disks"
+    fi
   done
   echo ""
   if [[ ${unformated_disks} == "" ]]; then
@@ -54,32 +47,30 @@ format_disk() {
     echo "  start this installer again. Aborting..."
     exit 1
   fi
-  while :
-    do
-      disk=$(reader "Type disk path for partition: " "DATA_DISK_PATH")
-      if [[ "${disks}" != *"${disk}"* ]]; then
-        echo "${disk} was not found!, please type from list above"
+  while :; do
+    disk=$(reader "Type disk path for partition: " "DATA_DISK_PATH")
+    if [[ "${disks}" != *"${disk}"* ]]; then
+      echo "${disk} was not found!, please type from list above"
+    else
+      if [[ "${unformated_disks}" != *"${disk}"* ]]; then
+        echo "${disk} is not empty. Please select a disk from the list above"
       else
-        if [[ "${unformated_disks}" != *"${disk}"* ]]; then
-          echo "${disk} is not empty. Please select a disk from the list above"
-        else
-          break
-        fi
-      fi
-  done
-  while :
-    do
-      echo ""
-      echo "This is the disk you are about to partition and all data will be deleted"
-      fdisk -l $disk
-      echo ""
-      echo ""
-      echo "Are you SURE you want to delete all data on $disk?"
-      INPUT=$(reader "Type YES to delete all data and partition $disk: " "DELETE_DATA_DISK")
-      if [[ "${INPUT^^}" == "YES" ]]; then
         break
       fi
-      echo "If you want to abort and restart install please press CTRL+C"
+    fi
+  done
+  while :; do
+    echo ""
+    echo "This is the disk you are about to partition and all data will be deleted"
+    fdisk -l $disk
+    echo ""
+    echo ""
+    echo "Are you SURE you want to delete all data on $disk?"
+    INPUT=$(reader "Type YES to delete all data and partition $disk: " "DELETE_DATA_DISK")
+    if [[ "${INPUT^^}" == "YES" ]]; then
+      break
+    fi
+    echo "If you want to abort and restart install please press CTRL+C"
   done
   parted $disk --script mklabel msdos
   parted $disk --script mkpart primary ext4 0% 100%
@@ -88,15 +79,14 @@ format_disk() {
   mkdir -p /srv/docker/cts/data
   if ! grep "/srv/docker/cts/data" /etc/fstab; then
     echo "Adding mount to /etc/fstab"
-    echo "$PARTITION /srv/docker/cts/data ext4 defaults 0 2" >> /etc/fstab
+    echo "$PARTITION /srv/docker/cts/data ext4 defaults 0 2" >>/etc/fstab
   else
     echo "Mount already exists in /etc/fstab"
   fi
   mount -a
 }
 
-function secret_reader()
-{
+function secret_reader() {
   if [ -z ${!2} ]; then
     read -s -p "${1}" ${2}
     echo "${!2}"
@@ -105,8 +95,7 @@ function secret_reader()
   fi
 }
 
-function reader()
-{
+function reader() {
   if [ -z ${!2} ]; then
     read -p "${1}" ${2}
     echo "${!2}"
@@ -154,20 +143,19 @@ else
   exit 1
 fi
 
-if (( $EUID != 0 )); then
-    echo "Please execute the script with sudo"
-    exit
+if (($EUID != 0)); then
+  echo "Please execute the script with sudo"
+  exit
 fi
 
 # Check disks and fail early if no unformatted disks available
-check_unformated_disks(){
+check_unformated_disks() {
   disks=$(lsblk -dpno name | sed -e 's/[^ ]*loop[^ ]*//ig' | xargs)
   unformated_disks=""
-  for d in $disks
-    do
-      if [[ $(/sbin/sfdisk -d ${d} 2>&1) == ""  || $(/sbin/sfdisk -d ${d} 2>&1) == *"does not contain a recognized partition table"* ]]; then
-        unformated_disks="$d $unformated_disks"
-      fi
+  for d in $disks; do
+    if [[ $(/sbin/sfdisk -d ${d} 2>&1) == "" || $(/sbin/sfdisk -d ${d} 2>&1) == *"does not contain a recognized partition table"* ]]; then
+      unformated_disks="$d $unformated_disks"
+    fi
   done
   echo ""
   if [[ ${unformated_disks} == "" ]]; then
@@ -178,27 +166,25 @@ check_unformated_disks(){
 }
 check_unformated_disks
 
-
-while :
-  do
-    echo ""
-    echo "Type service level of the device, valid service levels are:"
-    echo "  'PREPARE' does not initiate the CTS, it will just install and prepare for initiation"
-    echo "  CTS-AI"
-    echo "  CTS-E"
-    echo "  CTS-S"
-    echo "  PREPARE"
-    SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-    if [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
-      break
-    fi
-    echo "If you want to abort and restart install please press CTRL+C"
-    unset SERVICE_LEVEL
+while :; do
+  echo ""
+  echo "Type service level of the device, valid service levels are:"
+  echo "  'PREPARE' does not initiate the CTS, it will just install and prepare for initiation"
+  echo "  CTS-AI"
+  echo "  CTS-E"
+  echo "  CTS-S"
+  echo "  PREPARE"
+  SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
+  if [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
+    break
+  fi
+  echo "If you want to abort and restart install please press CTRL+C"
+  unset SERVICE_LEVEL
 done
 
 # Configure repositories
 if [[ "${ID}" == "ubuntu" ]] && [[ "${VERSION_ID}" == "22.04" ]]; then
-  cat <<EOF > /etc/apt/sources.list
+  cat <<EOF >/etc/apt/sources.list
 deb http://archive.ubuntu.com/ubuntu jammy main restricted
 deb http://archive.ubuntu.com/ubuntu jammy-updates main restricted
 deb http://archive.ubuntu.com/ubuntu jammy universe
@@ -237,53 +223,50 @@ fi
 
 # Create support user for NTT
 echo ""
-  while :
-    do
-      INPUT=$(reader "Do you want to create NTT support user (nttsecurity)? Type YES or NO: " "CREATE_SUPPORT_USER")
-      if [[ "${INPUT^^}" == "YES" ]]; then
-        echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
-        echo "This password needs to be distributed to NTT Service transition team for management"
-        echo ""
-        if [[ "${DIST}" == "centos" ]]; then
-          adduser nttsecurity || true
-          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-          echo ${CREDENTIALS} | passwd nttsecurity --stdin
-          usermod -aG wheel nttsecurity
-        elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-          adduser --disabled-password --gecos "" nttsecurity || true
-          CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-          echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
-          usermod -aG sudo nttsecurity
-        fi
-        break
-      fi
-      if [[ "${INPUT^^}" == "NO" ]]; then
-        break
-      fi
-  done
+while :; do
+  INPUT=$(reader "Do you want to create NTT support user (nttsecurity)? Type YES or NO: " "CREATE_SUPPORT_USER")
+  if [[ "${INPUT^^}" == "YES" ]]; then
+    echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
+    echo "This password needs to be distributed to NTT Service transition team for management"
+    echo ""
+    if [[ "${DIST}" == "centos" ]]; then
+      adduser nttsecurity || true
+      CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+      echo ${CREDENTIALS} | passwd nttsecurity --stdin
+      usermod -aG wheel nttsecurity
+    elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+      adduser --disabled-password --gecos "" nttsecurity || true
+      CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+      echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
+      usermod -aG sudo nttsecurity
+    fi
+    break
+  fi
+  if [[ "${INPUT^^}" == "NO" ]]; then
+    break
+  fi
+done
 
 # Check if /srv/docker/cts/data is a mount
 mount_ok="false"
-for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data
-  do
-    mountpoint -q ${m_point}
-    if [[ "$?" == "0" ]]; then
-      mount_ok="true"
-    fi
+for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data; do
+  mountpoint -q ${m_point}
+  if [[ "$?" == "0" ]]; then
+    mount_ok="true"
+  fi
 done
 if [[ "$mount_ok" == "false" ]]; then
   echo "/srv/docker/cts/data is not mounted. Please make sure to mount this path to a high performance NVMe disk"
   echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
-  while :
-    do
-      INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "FORMAT_DATA_DISK")
-      if [[ "${INPUT^^}" == "YES" ]]; then
-        format_disk
-        break
-      fi
-      if [[ "${INPUT^^}" == "NO" ]]; then
-        exit 1
-      fi
+  while :; do
+    INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "FORMAT_DATA_DISK")
+    if [[ "${INPUT^^}" == "YES" ]]; then
+      format_disk
+      break
+    fi
+    if [[ "${INPUT^^}" == "NO" ]]; then
+      exit 1
+    fi
   done
 fi
 set -e
@@ -291,33 +274,32 @@ set -e
 if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]]; then
   echo "Do you want network recorder to store data to the default data storage disk (/srv/docker/cts/data) or do you wish to use a RAM disk?"
   echo "  RAM disk requires at least 40Gb extra ram (minimum 104Gb in total) and should only be used under special circumstances"
-  while :
-    do
-      INPUT=$(reader "Type DISK (default) or RAM: " "NETWORK_RECORDER_LOCATION")
-      if [[ "${INPUT^^}" == "DISK" ]]; then
-        break
+  while :; do
+    INPUT=$(reader "Type DISK (default) or RAM: " "NETWORK_RECORDER_LOCATION")
+    if [[ "${INPUT^^}" == "DISK" ]]; then
+      break
+    fi
+    if [[ "${INPUT^^}" == "RAM" ]]; then
+      # Make sure there is more than 104Gb of ram (using decimal)
+      AVAILABLE_RAM_KB=$(cat /proc/meminfo | grep "MemTotal:" | awk '{print $2}')
+      if ((${AVAILABLE_RAM_KB} < 104000000)); then
+        echo "RAM disk requires at least 40Gb RAM, minimum 104Gb in total. You have ${AVAILABLE_RAM_KB} kB available."
+        echo "  Example: 500 Mbit CTE-E requires at least 64Gb + 40Gb = 104Gb total RAM."
+        echo "  Abort using CTRL+C and add more RAM or use DISK instead"
+        continue
       fi
-      if [[ "${INPUT^^}" == "RAM" ]]; then
-        # Make sure there is more than 104Gb of ram (using decimal)
-        AVAILABLE_RAM_KB=$(cat /proc/meminfo | grep "MemTotal:" | awk '{print $2}')
-        if (( ${AVAILABLE_RAM_KB} < 104000000 )); then
-          echo "RAM disk requires at least 40Gb RAM, minimum 104Gb in total. You have ${AVAILABLE_RAM_KB} kB available."
-          echo "  Example: 500 Mbit CTE-E requires at least 64Gb + 40Gb = 104Gb total RAM."
-          echo "  Abort using CTRL+C and add more RAM or use DISK instead"
-          continue
-        fi
-        # Create RAM disk for stenotype
-        echo ""
-          mkdir -p /srv/docker/cts/data/stenographer
-          if ! grep "/srv/docker/cts/data/stenographer" /etc/fstab; then
-            echo "Adding mount to /etc/fstab"
-            echo "tmpfs /srv/docker/cts/data/stenographer tmpfs nodev,nosuid,noexec,nodiratime,size=40960M 0 0" >> /etc/fstab
-          else
-            echo "Mount already exists in /etc/fstab"
-          fi
-          mount -a
-          break
+      # Create RAM disk for stenotype
+      echo ""
+      mkdir -p /srv/docker/cts/data/stenographer
+      if ! grep "/srv/docker/cts/data/stenographer" /etc/fstab; then
+        echo "Adding mount to /etc/fstab"
+        echo "tmpfs /srv/docker/cts/data/stenographer tmpfs nodev,nosuid,noexec,nodiratime,size=40960M 0 0" >>/etc/fstab
+      else
+        echo "Mount already exists in /etc/fstab"
       fi
+      mount -a
+      break
+    fi
   done
 fi
 
@@ -330,7 +312,7 @@ NTP1=$(reader "Primary NTP server: " "NTP1")
 NTP2=$(reader "Secondary NTP server: " "NTP2")
 echo ""
 if [[ "${DIST}" == "centos" ]]; then
-  cat <<EOF > /etc/ntp.conf
+  cat <<EOF >/etc/ntp.conf
 driftfile /var/lib/ntp/drift
 restrict default nomodify notrap nopeer noquery
 restrict 127.0.0.1
@@ -341,7 +323,7 @@ disable monitor
 server ${NTP1} iburst
 EOF
   if [ ! -z ${NTP2} ] && [[ "${NTP2^^}" != "NONE" ]]; then
-    echo "server ${NTP2} iburst" >> /etc/ntp.conf
+    echo "server ${NTP2} iburst" >>/etc/ntp.conf
   fi
   systemctl stop ntpd
   ntpdate ${NTP1}
@@ -351,12 +333,12 @@ EOF
   timedatectl set-timezone UTC
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
   mkdir -p /etc/systemd/timesyncd.conf.d/
-  cat <<EOF > /etc/systemd/timesyncd.conf.d/cts.conf
+  cat <<EOF >/etc/systemd/timesyncd.conf.d/cts.conf
 [Time]
 NTP=${NTP1}
 EOF
   if [ ! -z ${NTP2} ] && [[ "${NTP2^^}" != "NONE" ]]; then
-    echo "FallbackNTP=${NTP2}" >> /etc/systemd/timesyncd.conf.d/cts.conf
+    echo "FallbackNTP=${NTP2}" >>/etc/systemd/timesyncd.conf.d/cts.conf
   fi
   systemctl stop systemd-timesyncd
   ntpdate ${NTP1}
@@ -368,31 +350,27 @@ fi
 
 # Configure unattended upgrades
 install_unattended() {
-    while :; do
-        INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
-        if [[ "${INPUT^^}" == "YES" ]]; then
-            if [[ "${DIST}" == "ubuntu" ]]; then
-                DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
-                configure_unattended
-            elif [[ "${DIST}" == "centos" ]]; then
-                yum -y install yum-cron
-                configure_unattended
-            fi
-            break
-        fi
-        if [[ "${INPUT^^}" == "NO" ]]; then
-            break
-        fi
-    done
+  while :; do
+    INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
+    if [[ "${INPUT^^}" == "YES" ]]; then
+      if [[ "${DIST}" == "ubuntu" ]]; then
+        DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
+        configure_unattended
+      elif [[ "${DIST}" == "centos" ]]; then
+        yum -y install yum-cron
+        configure_unattended
+      fi
+      break
+    fi
+    if [[ "${INPUT^^}" == "NO" ]]; then
+      break
+    fi
+  done
 }
 
 configure_unattended() {
-    if [[ "${DIST}" == "ubuntu" ]]; then
-        # Move the old config
-        if test -f "/etc/apt/apt.conf.d/50unattended-upgrades"; then
-            mv "/etc/apt/apt.conf.d/50unattended-upgrades" "/etc/apt/apt.conf.d/50unattended-upgrades_old"
-        fi
-        cat <<EOF >/etc/apt/apt.conf.d/50unattended-upgrades
+  if [[ "${DIST}" == "ubuntu" ]]; then
+    cat <<EOF >/etc/apt/apt.conf.d/50unattended-upgrades
 Unattended-Upgrade::Allowed-Origins {
   "\${distro_id}:\${distro_codename}";
   "\${distro_id}:\${distro_codename}-security";
@@ -419,14 +397,10 @@ Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
 Unattended-Upgrade::SyslogEnable "true";
 Unattended-Upgrade::SyslogFacility "daemon";
 EOF
-        systemctl enable unattended-upgrades
-        systemctl start unattended-upgrades
-    elif [[ "${DIST}" == "centos" ]]; then
-        # Move the old config
-        if test -f "/etc/yum/yum-cron.conf"; then
-            mv "/etc/yum/yum-cron.conf" "/etc/yum/yum-cron.conf_old"
-        fi
-        cat <<EOF >/etc/yum/yum-cron.conf
+    systemctl enable unattended-upgrades
+    systemctl start unattended-upgrades
+  elif [[ "${DIST}" == "centos" ]]; then
+    cat <<EOF >/etc/yum/yum-cron.conf
 [commands]
 update_cmd = default
 update_messages = yes
@@ -444,29 +418,29 @@ mdpolicy = group:main
 assumeyes = True
 exclude = kernel* container* docker*
 EOF
-        systemctl enable yum-cron
-        systemctl start yum-cron
-    fi
+    systemctl enable yum-cron
+    systemctl start yum-cron
+  fi
 }
 
 # if unattended-upgrades is not installed, ask user for installation
 if ! command -v unattended-upgrades &>/dev/null; then
-    install_unattended
-    configure_unattended
+  install_unattended
+  configure_unattended
 else
-    # if it is installed, adjust the conf and enable the service
-    echo "unattended-upgrades already installed, updating config"
-    configure_unattended
+  # if it is installed, adjust the conf and enable the service
+  echo "unattended-upgrades already installed, updating config"
+  configure_unattended
 fi
 
 # Creating dummy0 interface
 if [[ "${DIST}" == "centos" ]]; then
   # Some AWS instances of CentOS 7 hang during boot, we need a work around for them
-  TOKEN=$(curl --silent --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600") > /dev/null 2>&1 \
-  && curl --silent --connect-timeout 2 -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1
+  TOKEN=$(curl --silent --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600") >/dev/null 2>&1 &&
+    curl --silent --connect-timeout 2 -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/ >/dev/null 2>&1
   if [[ "$?" == "0" ]] && [[ ! ${TOKEN} == *"ERR_CONNECT_FAIL"* ]]; then
     echo "This is most likely an EC2 instance in AWS. Creating dummy0 using rc.local"
-    cat <<EOF > /etc/rc.local
+    cat <<EOF >/etc/rc.local
 modprobe dummy numdummies=1
 ip link set name dummy0 dev dummy0
 ip link set dummy0 up
@@ -478,20 +452,20 @@ EOF
     ip link set dummy0 up
   else
     echo "Creating dummy0 interface"
-    cat <<EOF > /etc/sysconfig/network-scripts/ifcfg-dummy0
+    cat <<EOF >/etc/sysconfig/network-scripts/ifcfg-dummy0
 DEVICE=dummy0
 NM_CONTROLLED=no
 ONBOOT=yes
 TYPE=Ethernet
 EOF
-    echo "dummy" > /etc/modules-load.d/dummy.conf
-    echo "options dummy numdummies=1" > /etc/modprobe.d/dummy.conf
+    echo "dummy" >/etc/modules-load.d/dummy.conf
+    echo "options dummy numdummies=1" >/etc/modprobe.d/dummy.conf
     modprobe -v dummy numdummies=1
     ip link set up dummy0
   fi
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
   echo "Creating dummy0 interface"
-  cat <<EOF > /etc/netplan/10-cts-dummy0.yaml
+  cat <<EOF >/etc/netplan/10-cts-dummy0.yaml
 network:
   bridges:
     dummy0:
@@ -509,20 +483,20 @@ echo ""
 echo "Removing unwanted packages, error messages may occur"
 if [[ "${DIST}" == "centos" ]]; then
   yum -y remove docker \
-                docker-client \
-                docker-client-latest \
-                docker-common \
-                docker-latest \
-                docker-latest-logrotate \
-                docker-logrotate \
-                docker-engine
+    docker-client \
+    docker-client-latest \
+    docker-common \
+    docker-latest \
+    docker-latest-logrotate \
+    docker-logrotate \
+    docker-engine
   yum-config-manager \
     --add-repo \
     https://download.docker.com/linux/centos/docker-ce.repo
   yum install -y docker-ce docker-ce-cli containerd.io
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
   dpkg --remove docker docker-engine docker.io containerd runc
-  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
   apt -y update
   DEBIAN_FRONTEND=noninteractive apt -y install docker-ce docker-ce-cli containerd.io
@@ -532,26 +506,24 @@ systemctl start docker
 
 # Show all interfaces, this will be used for last step of enrolling the CTS
 ifaces=$(ls -m /sys/class/net)
-while :
-  do
-    echo ""
-    echo "Available interfaces: ${ifaces}"
-    echo "  Use one or more, separated by ','"
-    MONITOR=$(reader "Monitoring interface(s): " "MONITORING_INTERFACE")
-    if_ok="true"
-    OLD_IFS=$IFS
-    IFS=","
-    for m_interface in $MONITOR
-      do
-        if [[ " ${ifaces} " != *"${m_interface}"* ]]; then
-          echo "${m_interface} does not exists"
-          if_ok="false"
-        fi
-    done
-    IFS=$OLD_IFS
-    if [[ "$if_ok" == "true" ]] && [[ ${MONITOR} != "" ]] ; then
-      break
+while :; do
+  echo ""
+  echo "Available interfaces: ${ifaces}"
+  echo "  Use one or more, separated by ','"
+  MONITOR=$(reader "Monitoring interface(s): " "MONITORING_INTERFACE")
+  if_ok="true"
+  OLD_IFS=$IFS
+  IFS=","
+  for m_interface in $MONITOR; do
+    if [[ " ${ifaces} " != *"${m_interface}"* ]]; then
+      echo "${m_interface} does not exists"
+      if_ok="false"
     fi
+  done
+  IFS=$OLD_IFS
+  if [[ "$if_ok" == "true" ]] && [[ ${MONITOR} != "" ]]; then
+    break
+  fi
 done
 # Enroll to custom environment
 if [ ! -z ${CUSTOM_ENVIRONMENT} ]; then
@@ -590,48 +562,47 @@ if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]
   DEVICENAME=$(reader "Device name: " "DEVICENAME")
   # Initiate CTS-E
   docker run --network host \
-             --privileged \
-             --rm \
-             -e "INITIATOR_ENV=eu1" \
-             -e "INIT_KEY=${INITKEY}" \
-             -e "DEVICENAME=${DEVICENAME}" \
-             -e "INTERFACES=${MONITOR}" \
-             ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
-             ${env_string} \
-             -v /:/rootfs \
-             -v /var/run/docker.sock:/var/run/docker.sock:rw \
-             nttsecurityes/initiator:latest
+    --privileged \
+    --rm \
+    -e "INITIATOR_ENV=eu1" \
+    -e "INIT_KEY=${INITKEY}" \
+    -e "DEVICENAME=${DEVICENAME}" \
+    -e "INTERFACES=${MONITOR}" \
+    ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
+    ${env_string} \
+    -v /:/rootfs \
+    -v /var/run/docker.sock:/var/run/docker.sock:rw \
+    nttsecurityes/initiator:latest
 elif [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]]; then
   # Initiate CTS-AI
   if [[ "${DIST}" == "centos" ]]; then
     echo "CentOS 7 default firewall policy blocks access to HTTP services. You need temporary access to HTTP during enrolment."
-    while :
-      do
-        INPUT=$(reader "Do you want this installer to temporary allow HTTP servies? Type YES or NO: " "ALLOW_HTTP")
-        if [[ "${INPUT^^}" == "YES" ]]; then
-          firewall-cmd --add-service=http
-          echo "Important! You need to open HTTP manually if you restart the appliance before successful enrolment."
-          echo "  Issue the following command to temporary open for HTTP:"
-          echo "  firewall-cmd --add-service=http"
-          break
-        fi
-        if [[ "${INPUT^^}" == "NO" ]]; then
-          echo "WARNING! You did not open for HTTP. The enrolment web page will not be available."
-          echo "  Issue the following command to temporary open for HTTP:"
-          echo "  firewall-cmd --add-service=http"
-          break
-        fi
+    while :; do
+      INPUT=$(reader "Do you want this installer to temporary allow HTTP servies? Type YES or NO: " "ALLOW_HTTP")
+      if [[ "${INPUT^^}" == "YES" ]]; then
+        firewall-cmd --add-service=http
+        echo "Important! You need to open HTTP manually if you restart the appliance before successful enrolment."
+        echo "  Issue the following command to temporary open for HTTP:"
+        echo "  firewall-cmd --add-service=http"
+        break
+      fi
+      if [[ "${INPUT^^}" == "NO" ]]; then
+        echo "WARNING! You did not open for HTTP. The enrolment web page will not be available."
+        echo "  Issue the following command to temporary open for HTTP:"
+        echo "  firewall-cmd --add-service=http"
+        break
+      fi
     done
   fi
   docker run --network host \
-             --privileged \
-             --rm \
-             -e "INTERFACES=${MONITOR}" \
-             ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
-             ${env_string} \
-             -v /:/rootfs \
-             -v /var/run/docker.sock:/var/run/docker.sock:rw \
-             nttsecurityes/initiator:latest
+    --privileged \
+    --rm \
+    -e "INTERFACES=${MONITOR}" \
+    ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
+    ${env_string} \
+    -v /:/rootfs \
+    -v /var/run/docker.sock:/var/run/docker.sock:rw \
+    nttsecurityes/initiator:latest
 else
   # Just prepare for initiation
   echo ""
