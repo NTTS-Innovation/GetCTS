@@ -148,24 +148,6 @@ if (($EUID != 0)); then
   exit
 fi
 
-# Check disks and fail early if no unformatted disks available
-check_unformated_disks() {
-  disks=$(lsblk -dpno name | sed -e 's/[^ ]*loop[^ ]*//ig' | xargs)
-  unformated_disks=""
-  for d in $disks; do
-    if [[ $(/sbin/sfdisk -d ${d} 2>&1) == "" || $(/sbin/sfdisk -d ${d} 2>&1) == *"does not contain a recognized partition table"* ]]; then
-      unformated_disks="$d $unformated_disks"
-    fi
-  done
-  echo ""
-  if [[ ${unformated_disks} == "" ]]; then
-    echo "No unformated disks for data storage were found. Please add an unpartitioned disk and"
-    echo "  start this installer again. Aborting..."
-    exit 1
-  fi
-}
-check_unformated_disks
-
 while :; do
   echo ""
   echo "Type service level of the device, valid service levels are:"
@@ -181,6 +163,30 @@ while :; do
   echo "If you want to abort and restart install please press CTRL+C"
   unset SERVICE_LEVEL
 done
+
+# Check if /srv/docker/cts/data is a mount
+mount_ok="false"
+for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data; do
+  mountpoint -q ${m_point}
+  if [[ "$?" == "0" ]]; then
+    mount_ok="true"
+  fi
+done
+if [[ "$mount_ok" == "false" ]]; then
+  echo "/srv/docker/cts/data is not mounted. Please make sure to mount this path to a high performance NVMe disk"
+  echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
+  while :; do
+    INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "FORMAT_DATA_DISK")
+    if [[ "${INPUT^^}" == "YES" ]]; then
+      format_disk
+      break
+    fi
+    if [[ "${INPUT^^}" == "NO" ]]; then
+      exit 1
+    fi
+  done
+fi
+set -e
 
 # Configure repositories
 if [[ "${ID}" == "ubuntu" ]] && [[ "${VERSION_ID}" == "22.04" ]]; then
@@ -246,30 +252,6 @@ while :; do
     break
   fi
 done
-
-# Check if /srv/docker/cts/data is a mount
-mount_ok="false"
-for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data; do
-  mountpoint -q ${m_point}
-  if [[ "$?" == "0" ]]; then
-    mount_ok="true"
-  fi
-done
-if [[ "$mount_ok" == "false" ]]; then
-  echo "/srv/docker/cts/data is not mounted. Please make sure to mount this path to a high performance NVMe disk"
-  echo "  with sufficent amount of free space for the calculated amount of recorded network traffic"
-  while :; do
-    INPUT=$(reader "Do you want this installer to try to find a partition to format for you? Type YES or NO: " "FORMAT_DATA_DISK")
-    if [[ "${INPUT^^}" == "YES" ]]; then
-      format_disk
-      break
-    fi
-    if [[ "${INPUT^^}" == "NO" ]]; then
-      exit 1
-    fi
-  done
-fi
-set -e
 
 if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]]; then
   echo "Do you want network recorder to store data to the default data storage disk (/srv/docker/cts/data) or do you wish to use a RAM disk?"
