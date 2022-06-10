@@ -310,6 +310,10 @@ echo "Leave secondary NTP server empty if you only have one (just press enter)."
 echo "  If you need more please modify /etc/ntp.conf after the installation has been completed"
 NTP1=$(reader "Primary NTP server: " "NTP1")
 NTP2=$(reader "Secondary NTP server: " "NTP2")
+if [ "$NTP1" = "" ] && [ "$NTP2" = "" ]; then
+  echo "[-] No NTP server specified, defaulting to \"1.ubuntu.pool.ntp.org\""
+  NTP1=1.ubuntu.pool.ntp.org
+fi
 echo ""
 if [[ "${DIST}" == "centos" ]]; then
   cat <<EOF >/etc/ntp.conf
