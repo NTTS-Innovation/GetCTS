@@ -104,6 +104,83 @@ function reader() {
   fi
 }
 
+install_unattended() {
+  while :; do
+    INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
+    if [[ "${INPUT^^}" == "YES" ]]; then
+      if [[ "${DIST}" == "ubuntu" ]]; then
+        # Uninstall update-notifier-common since unattended-upgrades has the same config file defined and they
+        #  can't exist at the same time.
+        DEBIAN_FRONTEND=noninteractive apt -y remove update-notifier-common
+        DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
+        configure_unattended
+      elif [[ "${DIST}" == "centos" ]]; then
+        yum -y install yum-cron
+        configure_unattended
+      fi
+      break
+    fi
+    if [[ "${INPUT^^}" == "NO" ]]; then
+      break
+    fi
+  done
+}
+
+configure_unattended() {
+  if [[ "${DIST}" == "ubuntu" ]]; then
+    cat <<EOF >/etc/apt/apt.conf.d/50unattended-upgrades
+Unattended-Upgrade::Allowed-Origins {
+  "\${distro_id}:\${distro_codename}";
+  "\${distro_id}:\${distro_codename}-security";
+  "\${distro_id}ESMApps:\${distro_codename}-apps-security";
+  "\${distro_id}ESM:\${distro_codename}-infra-security";
+  "\${distro_id}:\${distro_codename}-updates";
+};
+Unattended-Upgrade::Package-Blacklist {
+  "linux-headers*";
+  "linux-image*";
+  "linux-generic*";
+  "linux-modules*";
+  "docker-ce*";
+  "containerd.io";
+};
+Unattended-Upgrade::DevRelease "auto";
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+Unattended-Upgrade::MinimalSteps "true";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+Unattended-Upgrade::SyslogEnable "true";
+Unattended-Upgrade::SyslogFacility "daemon";
+EOF
+    systemctl enable unattended-upgrades
+    systemctl start unattended-upgrades
+  elif [[ "${DIST}" == "centos" ]]; then
+    cat <<EOF >/etc/yum/yum-cron.conf
+[commands]
+update_cmd = default
+update_messages = yes
+download_updates = yes
+apply_updates = yes
+random_sleep = 360
+[emitters]
+system_name = None
+emit_via = stdio
+output_width = 80
+[base]
+debuglevel = -2
+skip_broken = True
+mdpolicy = group:main
+assumeyes = True
+exclude = kernel* container* docker*
+EOF
+    systemctl enable yum-cron
+    systemctl start yum-cron
+  fi
+}
+
 # Load defaults if they exist
 set +e
 if [ -f ".defaults" ]; then
@@ -334,90 +411,8 @@ EOF
   timedatectl set-timezone UTC
 fi
 
-# Configure unattended upgrades
-install_unattended() {
-  while :; do
-    INPUT=$(reader "Do you want to enable unattended updates? Type YES or NO: " "CONFIGURE_UNATTENDED_UPDATES")
-    if [[ "${INPUT^^}" == "YES" ]]; then
-      if [[ "${DIST}" == "ubuntu" ]]; then
-        DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
-        configure_unattended
-      elif [[ "${DIST}" == "centos" ]]; then
-        yum -y install yum-cron
-        configure_unattended
-      fi
-      break
-    fi
-    if [[ "${INPUT^^}" == "NO" ]]; then
-      break
-    fi
-  done
-}
-
-configure_unattended() {
-  if [[ "${DIST}" == "ubuntu" ]]; then
-    cat <<EOF >/etc/apt/apt.conf.d/50unattended-upgrades
-Unattended-Upgrade::Allowed-Origins {
-  "\${distro_id}:\${distro_codename}";
-  "\${distro_id}:\${distro_codename}-security";
-  "\${distro_id}ESMApps:\${distro_codename}-apps-security";
-  "\${distro_id}ESM:\${distro_codename}-infra-security";
-  "\${distro_id}:\${distro_codename}-updates";
-};
-Unattended-Upgrade::Package-Blacklist {
-  "linux-headers*";
-  "linux-image*";
-  "linux-generic*";
-  "linux-modules*";
-  "docker-ce*";
-  "containerd.io";
-};
-Unattended-Upgrade::DevRelease "auto";
-Unattended-Upgrade::AutoFixInterruptedDpkg "true";
-Unattended-Upgrade::MinimalSteps "true";
-Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
-Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
-Unattended-Upgrade::Remove-Unused-Dependencies "true";
-Unattended-Upgrade::Automatic-Reboot "true";
-Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
-Unattended-Upgrade::SyslogEnable "true";
-Unattended-Upgrade::SyslogFacility "daemon";
-EOF
-    systemctl enable unattended-upgrades
-    systemctl start unattended-upgrades
-  elif [[ "${DIST}" == "centos" ]]; then
-    cat <<EOF >/etc/yum/yum-cron.conf
-[commands]
-update_cmd = default
-update_messages = yes
-download_updates = yes
-apply_updates = yes
-random_sleep = 360
-[emitters]
-system_name = None
-emit_via = stdio
-output_width = 80
-[base]
-debuglevel = -2
-skip_broken = True
-mdpolicy = group:main
-assumeyes = True
-exclude = kernel* container* docker*
-EOF
-    systemctl enable yum-cron
-    systemctl start yum-cron
-  fi
-}
-
-# if unattended-upgrades is not installed, ask user for installation
-if ! command -v unattended-upgrades &>/dev/null; then
-  install_unattended
-  configure_unattended
-else
-  # if it is installed, adjust the conf and enable the service
-  echo "unattended-upgrades already installed, updating config"
-  configure_unattended
-fi
+# Enable unattended updates if the user wants it
+install_unattended
 
 # Creating dummy0 interface
 if [[ "${DIST}" == "centos" ]]; then
