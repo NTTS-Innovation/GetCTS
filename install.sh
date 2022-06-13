@@ -48,15 +48,18 @@ format_disk() {
     exit 1
   fi
   while :; do
+    found_disk="no"
     disk=$(reader "Type disk path for partition: " "DATA_DISK_PATH")
-    if [[ "${disks}" != *"${disk}"* ]]; then
-      echo "${disk} was not found!, please type from list above"
-    else
-      if [[ "${unformated_disks}" != *"${disk}"* ]]; then
-        echo "${disk} is not empty. Please select a disk from the list above"
-      else
+    for d in $unformated_disks; do
+      if [[ "$d" == "${disk}" ]]; then
+        found_disk="yes"
         break
       fi
+    done
+    if [[ "${found_disk}" != "yes" ]]; then
+        echo "${disk} was not found in the list of unformated disks"
+    else
+        break
     fi
   done
   while :; do
@@ -241,6 +244,15 @@ while :; do
   unset SERVICE_LEVEL
 done
 
+# Install required packages
+if [[ "${DIST}" == "centos" ]]; then
+  yum install -y epel-release
+  yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2 iftop
+
+elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+  DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron
+fi
+
 # Check if /srv/docker/cts/data is a mount
 mount_ok="false"
 for m_point in /srv /srv/docker /srv/docker/cts /srv/docker/cts/data; do
@@ -293,15 +305,6 @@ if [[ "${DIST}" == "centos" ]]; then
 elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
   apt update
   DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
-fi
-
-# Install required packages
-if [[ "${DIST}" == "centos" ]]; then
-  yum install -y epel-release
-  yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2 iftop
-
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron
 fi
 
 # Create support user for NTT
