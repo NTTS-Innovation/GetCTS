@@ -33,6 +33,21 @@ Build / configure a host. Bare metal is always the best choice but virtual works
 NTT’s CTS may be run on either virtual or hardware form factors as provisioned by the client.
 The specifications varies between CTS - Enhanced and CTS - Standard. Please refer to Table 1 to identify the version that applies to the service(s) you are subscribing to.
 
+### Required Internet access
+| Function | Mandatory | Protocol | Port | Destination | Details |
+| --- | --- | --- | --- | --- | --- |
+| CTS backend | Yes | TCP | 443 | nttsecurity.io<br>*.nttsecurity.io<br>*.*.nttsecurity.io | All regular backend communication deliver alert, telemetry |
+| NTP | Yes | UDP | 123 | customer infrastructure | Time syncronisation |
+| DNS | Yes | UDP | 53 | customer infrastructure | Domain name resolution |
+| Remote management | No[^1] | TCP | 22 | ctscon.nttsecurity.io | Used for remote administration of CTS (backup) |
+| Remote management | No[^1] | TCP | 443 | ra.cto.nttsecurity.io<br>deb.releases.teleport.dev | Used for remote administration of CTS |
+| Container management | Yes | TCP | 443 | docker.com<br>*.docker.com<br>docker.io<br>*.docker.io | Private container registry |
+| Amazon Cloud dependencies | TCP | 443 | *.cloudfront.net | Amazon CDN, used by CTS API |
+| Log storage | TCP | 443 | *.s3.*.amazonaw s.com | Amazon Cloud Storage, used to store systems logs |
+| OS updates | TCP | 80, 443 | archive.ubuntu.com | Ubuntu Software repository |
+| Installation | TCP | 443 | git.io<br>raw.githubuserco ntent.com | Download of installation script |
+[^1]: If this access is blocked then NTT will not be able to provide any support or SLA in regards to availability of the service unless a NTTSA are used that can be used for remote management</pre>
+
 #### CTS - Enhanced
 ##### Virtual deployments
 |  | 500 Mbps |1 Gbps  | 4 Gbps |
