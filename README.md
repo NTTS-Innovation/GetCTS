@@ -42,11 +42,12 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | Remote management | No[^1] | TCP | 22 | ctscon.nttsecurity.io | Used for remote administration of CTS (backup) |
 | Remote management | No[^1] | TCP | 443 | ra.cto.nttsecurity.io<br>deb.releases.teleport.dev | Used for remote administration of CTS |
 | Container management | Yes | TCP | 443 | docker.com<br>*.docker.com<br>docker.io<br>*.docker.io | Private container registry |
-| Amazon Cloud dependencies | TCP | 443 | *.cloudfront.net | Amazon CDN, used by CTS API |
-| Log storage | TCP | 443 | *.s3.*.amazonaw s.com | Amazon Cloud Storage, used to store systems logs |
-| OS updates | TCP | 80, 443 | archive.ubuntu.com | Ubuntu Software repository |
-| Installation | TCP | 443 | git.io<br>raw.githubuserco ntent.com | Download of installation script |
-[^1]: If this access is blocked then NTT will not be able to provide any support or SLA in regards to availability of the service unless a NTTSA are used that can be used for remote management</pre>
+| Amazon Cloud dependencies | Yes |TCP | 443 | *.cloudfront.net | Amazon CDN, used by CTS API |
+| Log storage | No | TCP | 443 | *.s3.*.amazonaw s.com | Amazon Cloud Storage, used to store systems logs |
+| OS updates | Yes | TCP | 80, 443 | archive.ubuntu.com | Ubuntu Software repository |
+| Installation | Yes | TCP | 443 | git.io<br>raw.githubuserco ntent.com | Download of installation script |
+| Metrics | Yes | TCP | 443 | metrics.cts.*.nttsecurity.io | Device metrics |
+[^1]: If this access is blocked then NTT will not be able to provide any support or SLA in regards to availability of the service unless a NTTSA are used that can be used for remote management
 
 #### CTS - Enhanced
 ##### Virtual deployments
