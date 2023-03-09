@@ -448,19 +448,21 @@ EOF
     modprobe -v dummy numdummies=1
     ip link set up dummy0
   fi
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  echo "Creating dummy0 interface"
-  cat <<EOF >/etc/netplan/10-cts-dummy0.yaml
-network:
-  bridges:
-    dummy0:
-      optional: true
-      dhcp4: false
-EOF
-  netplan generate
-  netplan apply
-  echo "Sleeping for 10 seconds to make sure all interfaces has been reloaded"
-  sleep 10
+### DISABLED dummy0 interface for debian/ubuntu. Janitor will start it for now
+###  netplan does NOT support dummy interface, the config below does NOT work
+#elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
+#  echo "Creating dummy0 interface"
+#  cat <<EOF >/etc/netplan/10-cts-dummy0.yaml
+#network:
+#  bridges:
+#    dummy0:
+#      optional: true
+#      dhcp4: false
+#EOF
+#  netplan generate
+#  netplan apply
+#  echo "Sleeping for 10 seconds to make sure all interfaces has been reloaded"
+#  sleep 10
 fi
 
 # Install Docker
