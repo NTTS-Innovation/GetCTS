@@ -36,14 +36,14 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 ### Required Internet access
 | Function | Mandatory | Protocol | Port | Destination | Details |
 | --- | --- | --- | --- | --- | --- |
-| CTS backend | Yes | TCP | 443 | nttsecurity.io<br>*.nttsecurity.io<br>*.*.nttsecurity.io | All regular backend communication deliver alert, telemetry |
+| CTS backend | Yes | TCP | 443 | nttsecurity.io<br>*.nttsecurity.io<br>*.*.nttsecurity.io | CTS API backend communication and telemetry |
 | NTP | Yes | UDP | 123 | customer infrastructure | Time syncronisation |
 | DNS | Yes | UDP | 53 | customer infrastructure | Domain name resolution |
 | Remote management | No[^1] | TCP | 22 | ctscon.nttsecurity.io | Used for remote administration of CTS (backup) |
 | Remote management | No[^1] | TCP | 443 | ra.cto.nttsecurity.io<br>deb.releases.teleport.dev<br>apt.releases.teleport.dev | Used for remote administration of CTS |
 | Container management | Yes | TCP | 443 | docker.com<br>*.docker.com<br>docker.io<br>*.docker.io | Private container registry |
 | Amazon Cloud dependencies | Yes |TCP | 443 | *.cloudfront.net | Amazon CDN, used by CTS API |
-| Log storage | No | TCP | 443 | *.s3.*.amazonaw s.com | Amazon Cloud Storage, used to store systems logs |
+| Payload | Yes | TCP | 443 | *.s3.*.amazonaws.com<br>s3.*.amazonaws.com | Amazon Cloud Storage, used to store events and evidence |
 | OS updates | Yes | TCP | 80, 443 | archive.ubuntu.com | Ubuntu Software repository |
 | Installation | Yes | TCP | 443 | git.io<br>raw.githubuserco ntent.com | Download of installation script |
 | Metrics | Yes | TCP | 443 | metrics.cts.*.nttsecurity.io | Device metrics |
