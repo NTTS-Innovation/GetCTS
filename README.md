@@ -40,7 +40,7 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | NTP | Yes | UDP | 123 | customer infrastructure | Time syncronisation |
 | DNS | Yes | UDP | 53 | customer infrastructure | Domain name resolution |
 | Remote management | No[^1] | TCP | 22 | ctscon.nttsecurity.io | Used for remote administration of CTS (backup) |
-| Remote management | No[^1] | TCP | 443 | ra.cto.nttsecurity.io<br>deb.releases.teleport.dev | Used for remote administration of CTS |
+| Remote management | No[^1] | TCP | 443 | ra.cto.nttsecurity.io<br>deb.releases.teleport.dev<br>apt.releases.teleport.dev | Used for remote administration of CTS |
 | Container management | Yes | TCP | 443 | docker.com<br>*.docker.com<br>docker.io<br>*.docker.io | Private container registry |
 | Amazon Cloud dependencies | Yes |TCP | 443 | *.cloudfront.net | Amazon CDN, used by CTS API |
 | Log storage | No | TCP | 443 | *.s3.*.amazonaw s.com | Amazon Cloud Storage, used to store systems logs |
