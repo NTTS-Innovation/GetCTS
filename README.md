@@ -43,7 +43,7 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | Remote management | No[^1] | TCP | 443 | ra.cto.nttsecurity.io<br>deb.releases.teleport.dev<br>apt.releases.teleport.dev | Used for remote administration of CTS |
 | Container management | Yes | TCP | 443 | docker.com<br>*.docker.com<br>docker.io<br>*.docker.io | Private container registry |
 | Amazon Cloud dependencies | Yes |TCP | 443 | *.cloudfront.net | Amazon CDN, used by CTS API |
-| Payload | Yes | TCP | 443 | *.s3.*.amazonaws.com<br>s3.*.amazonaws.com | Amazon Cloud Storage, used to store events and evidence |
+| Payload | Yes | TCP | 443 | *.s3.*.amazonaws.com<br>s3.*.amazonaws.com<br>*.blob.core.windows.net | Amazon Cloud Storage and Azure Storage, used to store events and evidence |
 | OS updates | Yes | TCP | 80, 443 | archive.ubuntu.com | Ubuntu Software repository |
 | Installation | Yes | TCP | 443 | git.io<br>raw.githubuserco ntent.com | Download of installation script |
 | Metrics | Yes | TCP | 443 | metrics.cts.*.nttsecurity.io | Device metrics |
