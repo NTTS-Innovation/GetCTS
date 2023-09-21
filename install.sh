@@ -232,12 +232,13 @@ while :; do
   echo ""
   echo "Type service level of the device, valid service levels are:"
   echo "  'PREPARE' does not initiate the CTS, it will just install and prepare for initiation"
+  echo "  J-AUTO"
   echo "  CTS-AI"
   echo "  CTS-E"
   echo "  CTS-S"
   echo "  PREPARE"
   SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-  if [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
+  if [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
     break
   fi
   echo "If you want to abort and restart install please press CTRL+C"
@@ -541,7 +542,7 @@ if [[ "$?" == "1" ]]; then
   exit 1
 fi
 
-if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]]; then
+if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]]; then
   echo ""
   echo "Please enter device details. Both init key and device name need to be defined."
   echo "  You should be able to find this information in your enrolment documentation."
@@ -551,7 +552,6 @@ if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]
   docker run --network host \
     --privileged \
     --rm \
-    -e "INITIATOR_ENV=eu1" \
     -e "INIT_KEY=${INITKEY}" \
     -e "DEVICENAME=${DEVICENAME}" \
     -e "INTERFACES=${MONITOR}" \
