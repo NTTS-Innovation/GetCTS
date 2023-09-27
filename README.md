@@ -45,7 +45,7 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | Amazon Cloud dependencies | Yes |TCP | 443 | \*.cloudfront.net | Amazon CDN, used by CTS API |
 | Payload | Yes | TCP | 443 | \*.s3.\*.amazonaws.com<br>s3.\*.amazonaws.com<br>\*.s3.amazonaws.com<br>s3-w.\*.amazonaws.com<br>\*.blob.core.windows.net | Amazon Cloud Storage and Azure Storage, used to store events and evidence |
 | OS updates | Yes | TCP | 80, 443 | archive.ubuntu.com | Ubuntu Software repository |
-| Installation | Yes | TCP | 443 | git.io<br>raw.githubuserco ntent.com | Download of installation script |
+| Installation | Yes | TCP | 443 | git.io<br>raw.githubusercontent.com | Download of installation script |
 | Metrics | Yes | TCP | 443 | metrics.cts.\*.nttsecurity.io | Device metrics |
 [^1]: If this access is blocked then NTT will not be able to provide any support or SLA in regards to availability of the service unless a NTTSA are used that can be used for remote management
 
