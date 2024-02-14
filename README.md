@@ -36,15 +36,16 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 ### Required Internet access
 | Function | Mandatory | Protocol | Port | Destination | Details |
 | --- | --- | --- | --- | --- | --- |
-| CTS backend | Yes | TCP | 443 | nttsecurity.io<br>\*.nttsecurity.io<br>\*.\*.nttsecurity.io | CTS API backend communication and telemetry |
+| CTS backend | Yes | TCP | 443 | <ul><li>nttsecurity.io (\*.nttsecurity.io, \*.\*.nttsecurity.io)<ul><li>cts.eu1.nttsecurity.io</li></ul></ul> | CTS API backend communication and telemetry |
+| Collector backend | Yes | TCP | 443 | <ul><li>samurai-xdr-prod-westeurope-xgliuoit.azure-api.net</li><li>api.eu.mdr.security.ntt</li></ul> | Collector API backend communication and telemetry for Samurai service |
 | NTP | Yes | UDP | 123 | customer infrastructure | Time syncronisation |
 | DNS | Yes | UDP | 53 | customer infrastructure | Domain name resolution |
-| Remote management | No[^1] | TCP | 443 | ra.cto.nttsecurity.io<br>deb.releases.teleport.dev<br>apt.releases.teleport.dev | Used for remote administration of CTS |
-| Container management | Yes | TCP | 443 | docker.com<br>login.docker.com, hub.docker.com, production.cloudflare.docker.com (\*.docker.com)<br>docker.io<br>auth.docker.io, registry-1.docker.io (\*.docker.io)<br>cdn.auth0.com | Private container registry[^2] |
+| Remote management | No[^1] | TCP | 443 | <ul><li>ra.cto.nttsecurity.io</li><li>deb.releases.teleport.dev</li><li>apt.releases.teleport.dev</li></ul> | Used for remote administration of CTS |
+| Container management | Yes | TCP | 443 | <ul><li>docker.com (\*.docker.com)<ul><li>login.docker.com</li><li>hub.docker.com</li><li>production.cloudflare.docker.com</li></ul></li><li>docker.io (\*.docker.io)<ul><li>auth.docker.io</li><li>registry-1.docker.io</li></ul></li><li>cdn.auth0.com</li></ul> | Private container registry[^2] |
 | Amazon Cloud dependencies | Yes |TCP | 443 | \*.cloudfront.net | Amazon CDN, used by CTS API |
 | Payload | Yes | TCP | 443 | \*.s3.\*.amazonaws.com<br>s3.\*.amazonaws.com<br>\*.s3.amazonaws.com<br>s3-w.\*.amazonaws.com<br>\*.blob.core.windows.net | Amazon Cloud Storage and Azure Storage, used to store events and evidence |
 | OS updates | Yes | TCP | 80, 443 | archive.ubuntu.com | Ubuntu Software repository |
-| Installation | Yes | TCP | 443 | git.io<br>raw.githubusercontent.com | Download of installation script |
+| Installation | Yes | TCP | 443 | <ul><li>git.io</li><li>raw.githubusercontent.com</li></ul> | Download of installation script |
 | Metrics | Yes | TCP | 443 | metrics.cts.\*.nttsecurity.io | Device metrics |
 [^1]: If this access is blocked then NTT will not be able to provide any support or SLA in regards to availability of the service unless a NTTSA are used that can be used for remote management
 [^2]: https://docs.docker.com/desktop/allow-list/
