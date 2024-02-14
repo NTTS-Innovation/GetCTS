@@ -37,7 +37,7 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | Function | Mandatory | Protocol | Port | Destination | Details |
 | --- | --- | --- | --- | --- | --- |
 | CTS backend | Yes | TCP | 443 | <ul><li>nttsecurity.io (\*.nttsecurity.io, \*.\*.nttsecurity.io)<ul><li>cts.eu1.nttsecurity.io</li><li>metrics.cts.eu1.nttsecurity.io</li></ul></ul> | CTS API backend communication and telemetry |
-| Collector backend | Yes | TCP | 443 | <ul><li>samurai-xdr-prod-westeurope-xgliuoit.azure-api.net</li><li>api.eu.mdr.security.ntt</li><li>samurai-cts-prod-westeurope.prometheus.rteam.nttsecurity.io</li></ul> | Collector API backend communication and telemetry for Samurai service |
+| Collector backend | Yes | TCP | 443 | <ul><li>samurai-xdr-prod-westeurope-xgliuoit.azure-api.net</li><li>api.westeurope.mdr.security.ntt</li><li>samurai-cts-prod-westeurope.prometheus.rteam.nttsecurity.io</li></ul> | Collector API backend communication and telemetry for Samurai service |
 | NTP | Yes | UDP | 123 | customer infrastructure | Time syncronisation |
 | DNS | Yes | UDP | 53 | customer infrastructure | Domain name resolution |
 | Remote management | No[^1] | TCP | 443 | <ul><li>ra.cto.nttsecurity.io</li><li>deb.releases.teleport.dev</li><li>apt.releases.teleport.dev</li></ul> | Used for remote administration of CTS |
