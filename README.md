@@ -36,7 +36,7 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 ### Required Internet access
 | Function | Mandatory | Protocol | Port | Destination | Details |
 | --- | --- | --- | --- | --- | --- |
-| CTS backend | Yes | TCP | 443 | <ul><li>nttsecurity.io (\*.nttsecurity.io, \*.\*.nttsecurity.io)<ul><li>cts.eu1.nttsecurity.io</li><li>metrics.cts.eu1.nttsecurity.io</li></ul></ul> | CTS API backend communication and telemetry |
+| CTS backend | Yes | TCP | 443 | <ul><li>nttsecurity.io (\*.nttsecurity.io, \*.\*.nttsecurity.io)<ul><li>cts.eu1.nttsecurity.io</li><li>metrics.cts.eu1.nttsecurity.io</li><li>repo.global.nttsecurity.io</li></ul></ul> | CTS API backend communication and telemetry |
 | Collector backend | Yes | TCP | 443 | <ul><li>samurai-xdr-prod-westeurope-xgliuoit.azure-api.net</li><li>api.westeurope.mdr.security.ntt</li><li>samurai-cts-prod-westeurope.prometheus.rteam.nttsecurity.io</li></ul> | Collector API backend communication and telemetry for Samurai service |
 | NTP | Yes | UDP | 123 | customer infrastructure | Time syncronisation |
 | DNS | Yes | UDP | 53 | customer infrastructure | Domain name resolution |
