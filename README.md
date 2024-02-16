@@ -43,8 +43,8 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | Remote management | No[^1] | TCP | 443 | <ul><li>ra.cto.nttsecurity.io</li><li>deb.releases.teleport.dev</li><li>apt.releases.teleport.dev</li></ul> | Used for remote administration of CTS |
 | Container management | Yes | TCP | 443 | <ul><li>docker.com (\*.docker.com)<ul><li>login.docker.com</li><li>hub.docker.com</li><li>download.docker.com</li><li>production.cloudflare.docker.com</li></ul></li><li>docker.io (\*.docker.io)<ul><li>auth.docker.io</li><li>registry-1.docker.io</li></ul></li><li>cdn.auth0.com</li></ul> | Private container registry[^2] |
 | Amazon Cloud dependencies | Yes |TCP | 443 | \*.cloudfront.net | Amazon CDN, used by CTS API |
-| Payload | Yes | TCP | 443 | \*.s3.\*.amazonaws.com<br>s3.\*.amazonaws.com<br>\*.s3.amazonaws.com<br>s3-w.\*.amazonaws.com<br>\*.blob.core.windows.net | Amazon Cloud Storage and Azure Storage, used to store events and evidence |
-| OS updates | Yes | TCP | 80, 443 | <ul><li>ubuntu.com (\*.ubuntu.com)<ul><li>archive.ubuntu.com</li><li>esm.ubuntu.com</li><li>motd.ubuntu.com</li></ul></li></ul> | Ubuntu Software repository |
+| Payload | Yes | TCP | 443 | <ul><li>\*.s3.\*.amazonaws.com</li><li>s3.\*.amazonaws.com</li><li>\*.s3.amazonaws.com</li><li>s3-w.\*.amazonaws.com</li><li>\*.blob.core.windows.net<ul><li>clientlogsnsd7kpadgz3zw.blob.core.windows.net</li></ul></li></ul> | Amazon Cloud Storage and Azure Storage, used to store events and evidence |
+| OS updates | Yes | TCP | 80, 443 | <ul><li>ubuntu.com (\*.ubuntu.com)<ul><li>archive.ubuntu.com</li><li>esm.ubuntu.com</li><li>motd.ubuntu.com</li></ul></li><li>api.snapcraft.io</li></ul> | Ubuntu Software repository |
 | Installation | Yes | TCP | 443 | <ul><li>git.io</li><li>raw.githubusercontent.com</li></ul> | Download of installation script |
 [^1]: If this access is blocked then NTT will not be able to provide any support or SLA in regards to availability of the service unless a NTTSA are used that can be used for remote management
 [^2]: https://docs.docker.com/desktop/allow-list/
