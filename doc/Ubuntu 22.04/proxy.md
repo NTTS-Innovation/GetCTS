@@ -11,7 +11,7 @@ export no_proxy_servers=localhost,127.0.0.1,192.168.0.0/16,172.16.0.0/12,10.0.0.
 sudo mkdir -p /etc/systemd/system/docker.service.d
 cat << EOF > /etc/systemd/system/docker.service.d/http-proxy.conf
 [Service]
-Environment="HTTP_PROXY=http://$proxy_server" "HTTPS_PROXY=http://$proxy_server" "NO_PROXY=localhost,127.0.0.1,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8"
+Environment="HTTP_PROXY=http://$proxy_server" "HTTPS_PROXY=http://$proxy_server" "NO_PROXY=$no_proxy_servers"
 EOF
 systemctl daemon-reload
 systemctl restart docker
