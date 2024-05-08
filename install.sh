@@ -115,7 +115,12 @@ install_unattended() {
         # Uninstall update-notifier-common since unattended-upgrades has the same config file defined and they
         #  can't exist at the same time.
         DEBIAN_FRONTEND=noninteractive apt -y remove update-notifier-common
-        DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
+        if [[ "${VERSION_ID}" == "20.04" ]] || [[ "${VERSION_ID}" == "22.04" ]]; then
+          DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
+        else
+          # Ubuntu 24.04 does not have apt-config-auto-update
+          DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades
+        fi
         configure_unattended
       elif [[ "${DIST}" == "centos" ]]; then
         yum -y install yum-cron
@@ -202,7 +207,7 @@ if [ -f "/etc/os-release" ]; then
       exit 1
     fi
   elif [[ "${ID}" == "ubuntu" ]]; then
-    if [[ "${VERSION_ID}" == "20.04" ]] || [[ "${VERSION_ID}" == "22.04" ]]; then
+    if [[ "${VERSION_ID}" == "20.04" ]] || [[ "${VERSION_ID}" == "22.04" ]] || [[ "${VERSION_ID}" == "24.04" ]]; then
       echo "Supported Linux dist detected: ${ID} ${VERSION_ID}"
       DIST=${ID}
     else
@@ -292,6 +297,21 @@ deb http://archive.ubuntu.com/ubuntu jammy-backports main restricted universe mu
 deb http://archive.ubuntu.com/ubuntu jammy-security main restricted
 deb http://archive.ubuntu.com/ubuntu jammy-security universe
 deb http://archive.ubuntu.com/ubuntu jammy-security multiverse
+EOF
+fi
+
+if [[ "${ID}" == "ubuntu" ]] && [[ "${VERSION_ID}" == "24.04" ]]; then
+  cat <<EOF >/etc/apt/sources.list
+deb http://archive.ubuntu.com/ubuntu noble main restricted
+deb http://archive.ubuntu.com/ubuntu noble-updates main restricted
+deb http://archive.ubuntu.com/ubuntu noble universe
+deb http://archive.ubuntu.com/ubuntu noble-updates universe
+deb http://archive.ubuntu.com/ubuntu noble multiverse
+deb http://archive.ubuntu.com/ubuntu noble-updates multiverse
+deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu noble-security main restricted
+deb http://archive.ubuntu.com/ubuntu noble-security universe
+deb http://archive.ubuntu.com/ubuntu noble-security multiverse
 EOF
 fi
 
@@ -410,7 +430,7 @@ EOF
   fi
   systemctl stop systemd-timesyncd
   ntpdate ${NTP1}
-  hwclock --systohc
+  timedatectl --adjust-system-clock
   systemctl enable systemd-timesyncd
   systemctl start systemd-timesyncd
   timedatectl set-timezone UTC
