@@ -151,6 +151,7 @@ Unattended-Upgrade::Package-Blacklist {
   "linux-modules*";
   "docker-ce*";
   "containerd.io";
+  "teleport";
 };
 Unattended-Upgrade::DevRelease "auto";
 Unattended-Upgrade::AutoFixInterruptedDpkg "true";
