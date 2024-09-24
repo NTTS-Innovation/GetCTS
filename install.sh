@@ -193,7 +193,7 @@ done
 
 # Install required packages
 apt update
-DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron
+DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron rsyslog
 
 # Check if /srv/docker/cts/data is a mount
 mount_ok="false"
