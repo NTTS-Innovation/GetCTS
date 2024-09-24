@@ -8,6 +8,12 @@ Copy the text below to a text editor and update "export proxy_server=[server]:[i
 sudo -i
 export proxy_server=[server]:[port]
 export no_proxy_servers=localhost,127.0.0.1,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8
+sudo mkdir -p /etc/systemd/system/snapd.service.d
+cat << EOF > /etc/systemd/system/snapd.service.d/snap_proxy.conf
+[Service]
+Environment="HTTP_PROXY=http://$proxy_server"
+Environment="HTTPS_PROXY=http://$proxy_server"
+EOF
 sudo mkdir -p /etc/systemd/system/docker.service.d
 cat << EOF > /etc/systemd/system/docker.service.d/http-proxy.conf
 [Service]
