@@ -2,34 +2,6 @@
 # Exit on any error
 set -e
 
-MIN_KERNEL_VERSION="3.10.0-1127.8.2.el7.x86_64"
-RUNNING_KERNEL_VERSION=$(uname -r)
-
-vercomp() {
-  if [[ $1 == $2 ]]; then
-    return 0
-  fi
-  local IFS=.
-  local i ver1=($1) ver2=($2)
-  # fill empty fields in ver1 with zeros
-  for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
-    ver1[i]=0
-  done
-  for ((i = 0; i < ${#ver1[@]}; i++)); do
-    if [[ -z ${ver2[i]} ]]; then
-      # fill empty fields in ver2 with zeros
-      ver2[i]=0
-    fi
-    if ((10#${ver1[i]} > 10#${ver2[i]})); then
-      return 0
-    fi
-    if ((10#${ver1[i]} < 10#${ver2[i]})); then
-      return 1
-    fi
-  done
-  return 0
-}
-
 format_disk() {
   disks=$(lsblk -dpno name | sed -e 's/[^ ]*loop[^ ]*//ig' | xargs)
   unformated_disks=""
@@ -115,15 +87,12 @@ install_unattended() {
         # Uninstall update-notifier-common since unattended-upgrades has the same config file defined and they
         #  can't exist at the same time.
         DEBIAN_FRONTEND=noninteractive apt -y remove update-notifier-common
-        if [[ "${VERSION_ID}" == "20.04" ]] || [[ "${VERSION_ID}" == "22.04" ]]; then
+        if [[ "${VERSION_ID}" == "22.04" ]]; then
           DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades apt-config-auto-update
         else
           # Ubuntu 24.04 does not have apt-config-auto-update
           DEBIAN_FRONTEND=noninteractive apt -y install unattended-upgrades
         fi
-        configure_unattended
-      elif [[ "${DIST}" == "centos" ]]; then
-        yum -y install yum-cron
         configure_unattended
       fi
       break
@@ -166,27 +135,6 @@ Unattended-Upgrade::SyslogFacility "daemon";
 EOF
     systemctl enable unattended-upgrades
     systemctl start unattended-upgrades
-  elif [[ "${DIST}" == "centos" ]]; then
-    cat <<EOF >/etc/yum/yum-cron.conf
-[commands]
-update_cmd = default
-update_messages = yes
-download_updates = yes
-apply_updates = yes
-random_sleep = 360
-[emitters]
-system_name = None
-emit_via = stdio
-output_width = 80
-[base]
-debuglevel = -2
-skip_broken = True
-mdpolicy = group:main
-assumeyes = True
-exclude = kernel* container* docker*
-EOF
-    systemctl enable yum-cron
-    systemctl start yum-cron
   fi
 }
 
@@ -199,16 +147,8 @@ fi
 # Load os-release so we know on what dist we are
 if [ -f "/etc/os-release" ]; then
   . /etc/os-release
-  if [[ "${ID}" == "centos" ]]; then
-    if [[ "${VERSION_ID}" == "7" ]]; then
-      echo "Supported Linux dist detected: ${ID} ${VERSION_ID}"
-      DIST=${ID}
-    else
-      echo "Unsupported Linux dist detected: ${ID} ${VERSION_ID}, aborting!"
-      exit 1
-    fi
-  elif [[ "${ID}" == "ubuntu" ]]; then
-    if [[ "${VERSION_ID}" == "20.04" ]] || [[ "${VERSION_ID}" == "22.04" ]] || [[ "${VERSION_ID}" == "24.04" ]]; then
+  if [[ "${ID}" == "ubuntu" ]]; then
+    if [[ "${VERSION_ID}" == "22.04" ]] || [[ "${VERSION_ID}" == "24.04" ]]; then
       echo "Supported Linux dist detected: ${ID} ${VERSION_ID}"
       DIST=${ID}
     else
@@ -252,14 +192,8 @@ while :; do
 done
 
 # Install required packages
-if [[ "${DIST}" == "centos" ]]; then
-  yum install -y epel-release
-  yum install -y ntp yum-plugin-versionlock yum-utils device-mapper-persistent-data lvm2 iftop
-
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  apt update
-  DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron
-fi
+apt update
+DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron
 
 # Check if /srv/docker/cts/data is a mount
 mount_ok="false"
@@ -318,17 +252,8 @@ fi
 
 # Update system and kernel
 echo "Updating operating system and kernel"
-if [[ "${DIST}" == "centos" ]]; then
-  yum clean all && yum -y update && yum -y update kernel
-  if ! vercomp ${MIN_KERNEL_VERSION} ${RUNNING_KERNEL_VERSION}; then
-    echo "Running Kernel version is too old and the system was just updated to latest version"
-    echo "Please reboot and run this command again"
-    exit 1
-  fi
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  apt update
-  DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
-fi
+apt update
+DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
 
 # Create support user for NTT
 echo ""
@@ -338,17 +263,10 @@ while :; do
     echo "Please type a temporary password for user nttsecurity and write it down in a secure place"
     echo "This password needs to be distributed to NTT Service transition team for management"
     echo ""
-    if [[ "${DIST}" == "centos" ]]; then
-      adduser nttsecurity || true
-      CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-      echo ${CREDENTIALS} | passwd nttsecurity --stdin
-      usermod -aG wheel nttsecurity
-    elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-      adduser --disabled-password --gecos "" nttsecurity || true
-      CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
-      echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
-      usermod -aG sudo nttsecurity
-    fi
+    adduser --disabled-password --gecos "" nttsecurity || true
+    CREDENTIALS=$(secret_reader "Password: " "SUPPORT_USER_PASSWORD")
+    echo -e "${CREDENTIALS}\n${CREDENTIALS}" | passwd nttsecurity
+    usermod -aG sudo nttsecurity
     break
   fi
   if [[ "${INPUT^^}" == "NO" ]]; then
@@ -400,101 +318,32 @@ if [ "$NTP1" = "" ] && [ "$NTP2" = "" ]; then
   NTP1=1.ubuntu.pool.ntp.org
 fi
 echo ""
-if [[ "${DIST}" == "centos" ]]; then
-  cat <<EOF >/etc/ntp.conf
-driftfile /var/lib/ntp/drift
-restrict default nomodify notrap nopeer noquery
-restrict 127.0.0.1
-restrict ::1
-includefile /etc/ntp/crypto/pw
-keys /etc/ntp/keys
-disable monitor
-server ${NTP1} iburst
-EOF
-  if [ ! -z ${NTP2} ] && [[ "${NTP2^^}" != "NONE" ]]; then
-    echo "server ${NTP2} iburst" >>/etc/ntp.conf
-  fi
-  systemctl stop ntpd
-  ntpdate ${NTP1}
-  hwclock --systohc
-  systemctl enable ntpd
-  systemctl start ntpd
-  timedatectl set-timezone UTC
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  mkdir -p /etc/systemd/timesyncd.conf.d/
-  cat <<EOF >/etc/systemd/timesyncd.conf.d/cts.conf
+mkdir -p /etc/systemd/timesyncd.conf.d/
+cat <<EOF >/etc/systemd/timesyncd.conf.d/cts.conf
 [Time]
 NTP=${NTP1}
 EOF
-  if [ ! -z ${NTP2} ] && [[ "${NTP2^^}" != "NONE" ]]; then
-    echo "FallbackNTP=${NTP2}" >>/etc/systemd/timesyncd.conf.d/cts.conf
-  fi
-  systemctl stop systemd-timesyncd
-  ntpdate ${NTP1}
-  timedatectl --adjust-system-clock
-  systemctl enable systemd-timesyncd
-  systemctl start systemd-timesyncd
-  timedatectl set-timezone UTC
+if [ ! -z ${NTP2} ] && [[ "${NTP2^^}" != "NONE" ]]; then
+  echo "FallbackNTP=${NTP2}" >>/etc/systemd/timesyncd.conf.d/cts.conf
 fi
+systemctl stop systemd-timesyncd
+ntpdate ${NTP1}
+timedatectl --adjust-system-clock
+systemctl enable systemd-timesyncd
+systemctl start systemd-timesyncd
+timedatectl set-timezone UTC
 
 # Enable unattended updates if the user wants it
 install_unattended
 
-# Creating dummy0 interface
-if [[ "${DIST}" == "centos" ]]; then
-  # Some AWS instances of CentOS 7 hang during boot, we need a work around for them
-  TOKEN=$(curl --silent --connect-timeout 2 -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600") >/dev/null 2>&1 &&
-    curl --silent --connect-timeout 2 -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/ >/dev/null 2>&1
-  if [[ "$?" == "0" ]] && [[ ! ${TOKEN} == *"ERR_CONNECT_FAIL"* ]]; then
-    echo "This is most likely an EC2 instance in AWS. Creating dummy0 using rc.local"
-    cat <<EOF >/etc/rc.local
-modprobe dummy numdummies=1
-ip link set name dummy0 dev dummy0
-ip link set dummy0 up
-EOF
-    chmod +x /etc/rc.d/rc.local
-    systemctl enable rc-local
-    modprobe dummy numdummies=1
-    ip link set name dummy0 dev dummy0
-    ip link set dummy0 up
-  else
-    echo "Creating dummy0 interface"
-    cat <<EOF >/etc/sysconfig/network-scripts/ifcfg-dummy0
-DEVICE=dummy0
-NM_CONTROLLED=no
-ONBOOT=yes
-TYPE=Ethernet
-EOF
-    echo "dummy" >/etc/modules-load.d/dummy.conf
-    echo "options dummy numdummies=1" >/etc/modprobe.d/dummy.conf
-    modprobe -v dummy numdummies=1
-    ip link set up dummy0
-  fi
-fi
-
 # Install Docker
 echo ""
 echo "Removing unwanted packages, error messages may occur"
-if [[ "${DIST}" == "centos" ]]; then
-  yum -y remove docker \
-    docker-client \
-    docker-client-latest \
-    docker-common \
-    docker-latest \
-    docker-latest-logrotate \
-    docker-logrotate \
-    docker-engine
-  yum-config-manager \
-    --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
-  yum install -y docker-ce docker-ce-cli containerd.io
-elif [[ "${DIST}" == "debian" ]] || [[ "${DIST}" == "ubuntu" ]]; then
-  dpkg --remove docker docker-engine docker.io containerd runc
-  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-  apt -y update
-  DEBIAN_FRONTEND=noninteractive apt -y install docker-ce docker-ce-cli containerd.io
-fi
+dpkg --remove docker docker-engine docker.io containerd runc
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+apt -y update
+DEBIAN_FRONTEND=noninteractive apt -y install docker-ce docker-ce-cli containerd.io
 systemctl enable docker
 systemctl start docker
 
@@ -568,25 +417,6 @@ if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "J-AUTO" 
     nttsecurityes/initiator:latest
 elif [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]]; then
   # Initiate CTS-AI
-  if [[ "${DIST}" == "centos" ]]; then
-    echo "CentOS 7 default firewall policy blocks access to HTTP services. You need temporary access to HTTP during enrolment."
-    while :; do
-      INPUT=$(reader "Do you want this installer to temporary allow HTTP servies? Type YES or NO: " "ALLOW_HTTP")
-      if [[ "${INPUT^^}" == "YES" ]]; then
-        firewall-cmd --add-service=http
-        echo "Important! You need to open HTTP manually if you restart the appliance before successful enrolment."
-        echo "  Issue the following command to temporary open for HTTP:"
-        echo "  firewall-cmd --add-service=http"
-        break
-      fi
-      if [[ "${INPUT^^}" == "NO" ]]; then
-        echo "WARNING! You did not open for HTTP. The enrolment web page will not be available."
-        echo "  Issue the following command to temporary open for HTTP:"
-        echo "  firewall-cmd --add-service=http"
-        break
-      fi
-    done
-  fi
   docker run --network host \
     --privileged \
     --rm \
