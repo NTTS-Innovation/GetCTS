@@ -84,11 +84,13 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | Network interfaces | Management: 1 x 1 Gbit/s<br>Network Monitoring: 1 x 1 Gbit/s | Management: 1 x 1 Gbit/s<br>Network Monitoring: 1 x 1 Gbit/s | Management: 1 x 1 Gbit/s<br>Network Monitoring: 1 x 1 Gbit/s |
 
 ### Supported operating systems
-* Ubuntu Server 22.04 LTS (x86_64): https://ubuntu.com/download/server
+* Ubuntu Server 24.04 LTS (x86_64): https://ubuntu.com/download/server
 
 #### Deprecated
 Still supported for existing deployments but no new installations will be allowed
-* CentOS7 7 minimal (x86_64): http://isoredirect.centos.org/centos/7/isos/x86_64/)
+* Ubuntu Server 22.04 LTS (x86_64): https://ubuntu.com/download/server
+* CentOS7 7 minimal (x86_64): http://isoredirect.centos.org/centos/7/isos/x86_64/
+
 
 ### OS installation
 Install OS using default settings except for:
