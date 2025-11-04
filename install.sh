@@ -178,13 +178,12 @@ while :; do
   echo ""
   echo "Type service level of the device, valid service levels are:"
   echo "  'PREPARE' does not initiate the CTS, it will just install and prepare for initiation"
-  echo "  J-AUTO"
-  echo "  CTS-AI"
+  echo "  J-AUTO (SOC in Pocket)"
   echo "  CTS-E"
   echo "  CTS-S"
   echo "  PREPARE"
   SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-  if [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]] || [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
+  if [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
     break
   fi
   echo "If you want to abort and restart install please press CTRL+C"
@@ -415,21 +414,8 @@ if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "J-AUTO" 
     -v /:/rootfs \
     -v /var/run/docker.sock:/var/run/docker.sock:rw \
     nttsecurityes/initiator:latest
-elif [[ "${SERVICE_LEVEL^^}" == "CTS-AI" ]]; then
-  # Initiate CTS-AI
-  docker run --network host \
-    --privileged \
-    --rm \
-    -e "INTERFACES=${MONITOR}" \
-    ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} \
-    ${env_string} \
-    -v /:/rootfs \
-    -v /var/run/docker.sock:/var/run/docker.sock:rw \
-    nttsecurityes/initiator:latest
 else
   # Just prepare for initiation
   echo ""
   echo "This instance has been prepared to initiate an CTS. You need to manually execute initiation command or rerun this script and select another service to complete the enrolment"
-  echo "Example command to enroll CTS-AI:"
-  echo "  sudo docker run --network host --privileged --rm -e "INTERFACES=${MONITOR}" ${http_proxy_string}${https_proxy_string}${HTTP_PROXY_STRING}${HTTPS_PROXY_STRING} ${env_string} -v /:/rootfs -v /var/run/docker.sock:/var/run/docker.sock:rw nttsecurityes/initiator:latest" | xargs
 fi
