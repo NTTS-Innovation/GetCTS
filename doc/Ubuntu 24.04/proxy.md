@@ -2,30 +2,30 @@
 
 This script assumes standard installation with no changes in regards to proxy
 
-Copy the text below to a text editor and update "export proxy_server=[server]:[ip]" and replace [server] with the actual IP or hostname of the proxy server and [port] with proxy server port. Once the text has been updated copy everything and paste it in a shell on the server
+Copy the text below to a text editor and update "export proxy_server=[protocol][server]:[ip]" and replace [protocol] with http or https, [server] with the actual IP or hostname of the proxy server and [port] with proxy server port. Once the text has been updated copy everything and paste it in a shell on the server
 
 ```
 sudo -i
-export proxy_server=[server]:[port]
+export proxy_server=[protocol]://[server]:[port]
 export no_proxy_servers=localhost,127.0.0.1,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8
 sudo mkdir -p /etc/systemd/system/snapd.service.d
 cat << EOF > /etc/systemd/system/snapd.service.d/snap_proxy.conf
 [Service]
-Environment="HTTP_PROXY=http://$proxy_server"
-Environment="HTTPS_PROXY=http://$proxy_server"
+Environment="HTTP_PROXY=$proxy_server"
+Environment="HTTPS_PROXY=$proxy_server"
 EOF
 sudo mkdir -p /etc/systemd/system/docker.service.d
 cat << EOF > /etc/systemd/system/docker.service.d/http-proxy.conf
 [Service]
-Environment="HTTP_PROXY=http://$proxy_server" "HTTPS_PROXY=http://$proxy_server" "NO_PROXY=$no_proxy_servers"
+Environment="HTTP_PROXY=$proxy_server" "HTTPS_PROXY=$proxy_server" "NO_PROXY=$no_proxy_servers"
 EOF
 systemctl daemon-reload
 systemctl restart docker
-export HTTP_PROXY=http://$proxy_server
-export HTTPS_PROXY=http://$proxy_server
+export HTTP_PROXY=$proxy_server
+export HTTPS_PROXY=$proxy_server
 export NO_PROXY=$no_proxy_servers
-export http_proxy=http://$proxy_server
-export https_proxy=http://$proxy_server
+export http_proxy=$proxy_server
+export https_proxy=$proxy_server
 export no_proxy=$no_proxy_servers
 echo "http_proxy=$http_proxy" >> /etc/environment
 echo "https_proxy=$https_proxy" >> /etc/environment
