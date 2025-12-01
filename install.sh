@@ -178,7 +178,7 @@ while :; do
   echo ""
   echo "Type service level of the device, valid service levels are:"
   echo "  'PREPARE' does not initiate the CTS, it will just install and prepare for initiation"
-  echo "  J-AUTO (SOC in Pocket)"
+  echo "  J-AUTO (NTA Light / SOC in Pocket)"
   echo "  CTS-E"
   echo "  CTS-S"
   echo "  PREPARE"

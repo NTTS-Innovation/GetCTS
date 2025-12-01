@@ -83,6 +83,15 @@ The specifications varies between CTS - Enhanced and CTS - Standard. Please refe
 | Disks | System disk: 300GB<br>Dynamic data disk: 200GB | System disk: 300GB<br>Dynamic data disk: 200GB | System disk: 300GB<br>Dynamic data disk: 200GB |
 | Network interfaces | Management: 1 x 1 Gbit/s<br>Network Monitoring: 1 x 1 Gbit/s | Management: 1 x 1 Gbit/s<br>Network Monitoring: 1 x 1 Gbit/s | Management: 1 x 1 Gbit/s<br>Network Monitoring: 1 x 1 Gbit/s |
 
+#### NTA Light
+##### Hardware deployments
+|  | 1 Gbps |
+| --- | --- |
+| CPU | 1 x Intel Core i9 with 8 threads or better |
+| Memory | 16 GB RAM |
+| Disks | System disk: 300GB<br>Dynamic data disk: 200GB |
+| Network interfaces | Management: 1 x 1 Gbit/s<br>Network Monitoring: 1 x 1 Gbit/s |
+
 ### Supported operating systems
 * Ubuntu Server 24.04 LTS (x86_64): https://ubuntu.com/download/server
 
