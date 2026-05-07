@@ -235,17 +235,17 @@ EOF
 fi
 
 if [[ "${ID}" == "ubuntu" ]] && [[ "${VERSION_ID}" == "24.04" ]]; then
-  cat <<EOF >/etc/apt/sources.list
-deb http://archive.ubuntu.com/ubuntu noble main restricted
-deb http://archive.ubuntu.com/ubuntu noble-updates main restricted
-deb http://archive.ubuntu.com/ubuntu noble universe
-deb http://archive.ubuntu.com/ubuntu noble-updates universe
-deb http://archive.ubuntu.com/ubuntu noble multiverse
-deb http://archive.ubuntu.com/ubuntu noble-updates multiverse
-deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse
-deb http://archive.ubuntu.com/ubuntu noble-security main restricted
-deb http://archive.ubuntu.com/ubuntu noble-security universe
-deb http://archive.ubuntu.com/ubuntu noble-security multiverse
+  # Noble ships /etc/apt/sources.list.d/ubuntu.sources (deb822). Overwrite it to
+  # keep all suites on a single host (archive.ubuntu.com) for proxy/mirror setups.
+  if grep -qE '^[[:space:]]*deb[[:space:]]' /etc/apt/sources.list 2>/dev/null; then
+    : >/etc/apt/sources.list
+  fi
+  cat <<EOF >/etc/apt/sources.list.d/ubuntu.sources
+Types: deb
+URIs: http://archive.ubuntu.com/ubuntu/
+Suites: noble noble-updates noble-backports noble-security
+Components: main restricted universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 EOF
 fi
 
