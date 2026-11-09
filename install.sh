@@ -178,12 +178,13 @@ while :; do
   echo ""
   echo "Type service level of the device, valid service levels are:"
   echo "  'PREPARE' does not initiate the CTS, it will just install and prepare for initiation"
-  echo "  J-AUTO (NTA Light / SOC in Pocket)"
+  echo "  NTAL (NTA Light)"
+  echo "  J-AUTO (SOC in Pocket)"
   echo "  CTS-E"
   echo "  CTS-S"
   echo "  PREPARE"
   SERVICE_LEVEL=$(reader "Service level: " "SERVICE_LEVEL")
-  if [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
+  if [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "NTAL" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "PREPARE" ]]; then
     break
   fi
   echo "If you want to abort and restart install please press CTRL+C"
@@ -192,7 +193,7 @@ done
 
 # Install required packages
 apt update
-DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron rsyslog
+DEBIAN_FRONTEND=noninteractive apt -y install apt-transport-https ca-certificates curl gnupg lsb-release netplan.io ntpdate iftop systemd-timesyncd parted cron rsyslog openssh-server logrotate
 
 # Check if /srv/docker/cts/data is a mount
 mount_ok="false"
@@ -396,13 +397,13 @@ if [[ "$?" == "1" ]]; then
   exit 1
 fi
 
-if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]]; then
+if [[ "${SERVICE_LEVEL^^}" == "CTS-E" ]] || [[ "${SERVICE_LEVEL^^}" == "J-AUTO" ]] || [[ "${SERVICE_LEVEL^^}" == "CTS-S" ]] || [[ "${SERVICE_LEVEL^^}" == "NTAL" ]]; then
   echo ""
   echo "Please enter device details. Both init key and device name need to be defined."
   echo "  You should be able to find this information in your enrolment documentation."
   INITKEY=$(reader "Init key: " "INITKEY")
   DEVICENAME=$(reader "Device name: " "DEVICENAME")
-  # Initiate CTS-E
+  # Initiate device
   docker run --network host \
     --privileged \
     --rm \

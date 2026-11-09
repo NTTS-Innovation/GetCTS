@@ -1,7 +1,7 @@
 SERVICE_LEVEL=""
 # Description: Define service level
-# Valid input: CTS-AI, CTS-E, CTS-S or PREPARE
-# Example: CTS-AI
+# Valid input: NTAL, J-AUTO, CTS-E, CTS-S or PREPARE
+# Example: CTS-E
 
 FORMAT_DATA_DISK=""
 # Description: Should the installer format a data disk?
